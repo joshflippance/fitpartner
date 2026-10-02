@@ -1,7 +1,7 @@
 # FitPartner Competitive Research Plan
 
 **Owner:** Josh Flippance
-**Status:** Phases 1 to 3 complete (desk research, unverified). Phase 4 hands-on next.
+**Status:** Phases 1 to 3, 5 and 6 complete (desk research only). Phase 4 descoped 2026-10-02. Case study (Phase 7) not started.
 **Started:** 2026-10-02
 
 ## 1. Purpose
@@ -126,12 +126,12 @@ Keep prompts and agent outputs in `docs/research/log/` so the process is reprodu
 | 1. Discovery | Confirm the 8 named apps, propose slots 9 and 10 | Approved list | 1 session |
 | 2. Desk research | Profiles for all 10 apps | `apps/*.md` | 1 session (parallel agents) |
 | 3. Review and community mining | Themes, partner mentions | Section in each profile | 1 session |
-| 4. Hands-on trial | Timed tasks with April | Results table in each profile | 2 to 3 evenings |
+| 4. Hands-on trial | Descoped 2026-10-02. All scores and findings are desk-based. | n/a | n/a |
 | 5. Scoring | Fill the matrix | `feature-matrix.md` | 1 session |
 | 6. Synthesis | Backlog inputs, opportunity memo | `backlog-inputs.md`, `opportunity-memo.md` | 1 session |
 | 7. Case study | Process write-up with time savings | `case-study.md` | 1 session |
 
-Phase 4 is the only one needing both of you. Phases 2 and 3 can run while Phase 4 is scheduled.
+Phase 4 was descoped, so timed task tables in the profiles stay blank and the 5 hand-verify items in `log/cross-check.md` remain open.
 
 ## 8. File structure
 
