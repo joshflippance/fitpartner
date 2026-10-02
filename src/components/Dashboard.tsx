@@ -1,7 +1,7 @@
 "use client";
 
 import { useHouseholdData } from "@/hooks/useHouseholdData";
-import { sharedWorkoutStreak, STREAK_MODE } from "@/lib/streak";
+import { weeklyWorkoutStreak, type WeeklyStreak } from "@/lib/streak";
 import { toLocalDate } from "@/lib/dates";
 import { formatWeight } from "@/lib/units";
 import type { MealLog, Profile, WeightLog, WorkoutLog } from "@/lib/types";
@@ -21,7 +21,7 @@ export function Dashboard({
 
   const me = profiles.find((p) => p.id === userId);
   const partner = profiles.find((p) => p.id !== userId);
-  const streak = sharedWorkoutStreak(workouts, profiles.map((p) => p.id));
+  const streak = weeklyWorkoutStreak(workouts, profiles);
   const today = toLocalDate();
 
   return (
@@ -41,7 +41,7 @@ export function Dashboard({
 
       {error && <p className="rounded-2xl bg-danger/10 px-4 py-3 text-sm text-danger">{error}</p>}
 
-      <StreakCard streak={streak} />
+      <StreakCard data={streak} members={[me, partner].filter((p): p is Profile => Boolean(p))} userId={userId} />
 
       {loading ? (
         <SkeletonCards />
@@ -62,19 +62,45 @@ export function Dashboard({
   );
 }
 
-function StreakCard({ streak }: { streak: number }) {
+function StreakCard({ data, members, userId }: { data: WeeklyStreak; members: Profile[]; userId: string }) {
   return (
-    <Card className="flex items-center justify-between bg-gradient-to-br from-surface to-surface-2">
-      <div>
-        <p className="text-sm text-muted">Shared workout streak</p>
-        <p className="mt-1 text-xs text-muted/70">
-          {STREAK_MODE === "together" ? "Days you both trained" : "Days either of you trained"}
+    <Card className="bg-gradient-to-br from-surface to-surface-2">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-muted">Shared weekly streak</p>
+          <p className="mt-1 text-xs text-muted/70">Weeks you both hit your targets</p>
+        </div>
+        <p className="flex items-baseline gap-1">
+          <span className="text-5xl font-semibold tabular-nums">{data.streak}</span>
+          <span className="text-muted">{data.streak === 1 ? "week" : "weeks"}</span>
         </p>
       </div>
-      <p className="flex items-baseline gap-1">
-        <span className="text-5xl font-semibold tabular-nums">{streak}</span>
-        <span className="text-muted">{streak === 1 ? "day" : "days"}</span>
-      </p>
+
+      <div className="mt-4 space-y-2 border-t border-line pt-3">
+        {members.map((m) => {
+          const done = data.thisWeek[m.id] ?? 0;
+          const isYou = m.id === userId;
+          return (
+            <div key={m.id} className="flex items-center justify-between text-sm">
+              <span className="text-muted">{m.display_name}</span>
+              <span className="flex items-center gap-2">
+                <span className="flex gap-1" aria-label={`${done} of ${m.weekly_workout_target} sessions this week`}>
+                  {Array.from({ length: m.weekly_workout_target }, (_, i) => (
+                    <span
+                      key={i}
+                      className={`size-2.5 rounded-full ${i < done ? (isYou ? "bg-you" : "bg-partner") : "bg-line"}`}
+                    />
+                  ))}
+                </span>
+                <span className="w-8 text-right tabular-nums text-muted">{done}/{m.weekly_workout_target}</span>
+              </span>
+            </div>
+          );
+        })}
+        <p className="pt-1 text-xs text-muted/70">
+          {data.thisWeekDone ? "This week is locked in." : "This week counts once you both hit your targets."}
+        </p>
+      </div>
     </Card>
   );
 }

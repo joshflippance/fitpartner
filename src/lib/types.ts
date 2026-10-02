@@ -15,6 +15,7 @@ export interface Profile {
   calorie_target: number;
   protein_target: number;
   weight_unit: WeightUnit;
+  weekly_workout_target: number;
 }
 
 export interface MealLog {

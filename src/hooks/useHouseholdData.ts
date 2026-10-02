@@ -36,7 +36,7 @@ export function useHouseholdData(householdId: string): HouseholdData {
     const [p, m, w, wo] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id, display_name, household_id, calorie_target, protein_target, weight_unit")
+        .select("id, display_name, household_id, calorie_target, protein_target, weight_unit, weekly_workout_target")
         .eq("household_id", householdId)
         .order("created_at"),
       supabase.from("meal_logs").select("*").eq("household_id", householdId).eq("log_date", today).order("created_at"),

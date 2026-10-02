@@ -43,7 +43,7 @@ src/
   hooks/useHouseholdData.ts   loads household data + Supabase Realtime subscription
   lib/
     supabase/         browser, server and proxy clients
-    streak.ts         shared streak rule (STREAK_MODE)
+    streak.ts         shared weekly streak
     session.ts        requireUser / requireHousehold guards
   proxy.ts            session refresh + auth redirects (Next 16 "proxy", formerly middleware)
 supabase/migrations/  schema, RLS policies, pairing RPCs, realtime publication
@@ -55,12 +55,16 @@ scripts/generate-icons.mjs  regenerates PWA icons
 | Table | Notes |
 |---|---|
 | `households` | name, unique `pair_code` |
-| `profiles` | 1:1 with `auth.users`, auto-created on signup; targets, weight unit, `household_id` |
+| `profiles` | 1:1 with `auth.users`, auto-created on signup; calorie/protein targets, weekly workout target, weight unit, `household_id` |
 | `meal_logs` | per meal: calories, protein |
 | `weight_logs` | one per user per day, stored in kg |
 | `workout_logs` | name, duration, notes |
 
 RLS: you read everything in your household, and write only your own rows.
+
+## Weekly streak
+
+Each person sets a weekly workout target in Settings (default 3). A week counts when **both** of you train on at least your target number of distinct days. Weeks start Monday (`WEEK_STARTS_ON` in `src/lib/streak.ts`). The current week adds to the streak once it is complete, so the streak never drops mid-week.
 
 ## Real-time sync
 

@@ -24,6 +24,9 @@ export default async function SettingsPage() {
               <Input name="protein_target" type="number" inputMode="numeric" min={0} max={500} defaultValue={profile.protein_target} />
             </Field>
           </div>
+          <Field label="Workouts / week (streak target)">
+            <Input name="weekly_workout_target" type="number" inputMode="numeric" min={1} max={7} defaultValue={profile.weekly_workout_target} />
+          </Field>
           <Field label="Weight unit">
             <select
               name="weight_unit"
