@@ -1,10 +1,15 @@
 import { requireHousehold } from "@/lib/session";
 import { signOut } from "@/app/login/actions";
 import { Button, Card, Field, Input } from "@/components/ui";
-import { leaveHousehold, updateProfile } from "./actions";
+import { LeaveHousehold } from "@/components/LeaveHousehold";
+import { updateProfile } from "./actions";
 
 export default async function SettingsPage() {
-  const { profile, household } = await requireHousehold();
+  const { supabase, profile, household } = await requireHousehold();
+  const { count } = await supabase
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .eq("household_id", household.id);
 
   return (
     <div className="space-y-4">
@@ -51,9 +56,7 @@ export default async function SettingsPage() {
         <form action={signOut}>
           <Button type="submit" variant="ghost" className="w-full">Sign out</Button>
         </form>
-        <form action={leaveHousehold}>
-          <Button type="submit" variant="danger" className="w-full">Leave household</Button>
-        </form>
+        <LeaveHousehold householdName={household.name} isLastMember={(count ?? 1) <= 1} />
       </div>
     </div>
   );

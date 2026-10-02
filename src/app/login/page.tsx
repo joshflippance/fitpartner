@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { authenticate, type AuthState } from "./actions";
 import { Button, Field, Input } from "@/components/ui";
@@ -39,6 +40,11 @@ export default function LoginPage() {
           />
         </Field>
 
+        {mode === "signin" && (
+          <Link href="/login/reset" className="block text-right text-sm text-muted underline-offset-4 hover:underline">
+            Forgot password?
+          </Link>
+        )}
         {state.error && <p className="text-sm text-danger">{state.error}</p>}
         {state.message && <p className="text-sm text-you">{state.message}</p>}
 

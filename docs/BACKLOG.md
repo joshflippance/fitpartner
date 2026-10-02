@@ -2,7 +2,9 @@
 
 **Owner:** Josh Flippance
 **Date:** 2026-10-02
-**Status:** Proposed order for Josh to approve. Nothing is committed until approved.
+**Status:** Order approved by Josh 2026-10-02.
+
+**Progress:** FP-01 waiting on Josh (account steps in [DEPLOY.md](DEPLOY.md)). FP-02 to FP-05 done 2026-10-02.
 **Sources:** [Backlog inputs](research/backlog-inputs.md), [feature matrix](research/feature-matrix.md), [opportunity memo](research/opportunity-memo.md), current code ([README](../README.md)). Research is desk-based only; see the caveats in each file.
 
 ## How this is ordered
@@ -24,11 +26,11 @@ Items tagged with a **gate** only start if Josh picks that path in the [go or no
 
 | Rank | ID | Item | Epic | Effort | Gate | Depends on |
 |---|---|---|---|---|---|---|
-| 1 | FP-01 | Deploy to production (Supabase project, Vercel, auth URLs) | Foundation | S | | |
-| 2 | FP-02 | Log for past dates and edit entries | Foundation | S | | |
-| 3 | FP-03 | Password reset flow | Foundation | S | | FP-01 |
-| 4 | FP-04 | CI checks and unit tests for streak and dates | Foundation | S | | |
-| 5 | FP-05 | Confirm before leaving a household | Foundation | S | | |
+| 1 | FP-01 ⏳ | Deploy to production (Supabase project, Vercel, auth URLs) | Foundation | S | | |
+| 2 | FP-02 ✅ | Log for past dates and edit entries | Foundation | S | | |
+| 3 | FP-03 ✅ | Password reset flow | Foundation | S | | FP-01 |
+| 4 | FP-04 ✅ | CI checks and unit tests for streak and dates | Foundation | S | | |
+| 5 | FP-05 ✅ | Confirm before leaving a household | Foundation | S | | |
 | 6 | FP-06 | Weight trend line and history views | Progress | S to M | | |
 | 7 | FP-07 | Recent meals quick add and copy yesterday | Logging speed | S | | |
 | 8 | FP-08 | Log once for both: copy a partner's meal with my own portion | Couples | M | | FP-07 |
@@ -208,9 +210,7 @@ These come from the [skip list](research/backlog-inputs.md#skip) and are revisit
 
 ## Decisions for Josh
 
-1. **Approve the order** or move items. The biggest judgment calls:
-   - Foundation (FP-01 to FP-05) ranks ahead of the research Now items.
-   - Food search (FP-21) ranks behind sets and reps (FP-15).
+1. ~~Approve the order~~ Approved 2026-10-02.
 2. **Pick the go or no-go path.** That decides whether the beta-gated items (FP-11 to FP-14) and public-gated items (FP-22 to FP-24) come into scope.
 3. **Pinky Promise window:** the proposal treats workouts logged more than 2 days late as needing approval. Options: 1, 2 or 3 days.
 4. **Food database source** for FP-21, to be researched once FP-15 is underway.

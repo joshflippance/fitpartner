@@ -45,3 +45,28 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect("/login");
 }
+
+export async function requestPasswordReset(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const email = String(formData.get("email") ?? "").trim();
+  if (!email) return { error: "Enter your email." };
+
+  const supabase = await createClient();
+  const origin = (await headers()).get("origin") ?? "";
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/confirm?next=/account/password`,
+  });
+  // Same message whether or not the account exists.
+  return { message: "If that email has an account, a reset link is on its way." };
+}
+
+export async function updatePassword(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirm") ?? "");
+  if (password.length < 8) return { error: "Use at least 8 characters." };
+  if (password !== confirm) return { error: "Passwords don't match." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: error.message };
+  redirect("/");
+}

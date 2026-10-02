@@ -7,7 +7,7 @@ Mobile-first PWA for two people to track calories, protein, body weight and work
 ## Setup
 
 1. **Create a Supabase project** at supabase.com.
-2. **Run the migration.** Paste `supabase/migrations/20261002000000_init.sql` into the SQL editor and run it, or with the CLI:
+2. **Run the migrations** in filename order from `supabase/migrations/` in the SQL editor, or with the CLI:
    ```bash
    supabase link --project-ref YOUR_REF
    supabase db push
@@ -19,6 +19,21 @@ Mobile-first PWA for two people to track calories, protein, body weight and work
    npm install
    npm run dev
    ```
+
+## Scripts
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Local dev server |
+| `npm test` | Unit tests (Vitest) for streak, date and logging window logic |
+| `npm run typecheck` | Generates route types and runs `tsc` |
+| `npm run lint` | ESLint |
+
+CI runs lint, typecheck, tests and build on every push (`.github/workflows/ci.yml`). Production setup is in [docs/DEPLOY.md](docs/DEPLOY.md).
+
+## Logging window
+
+Entries can be added or edited for any day in the current or previous week (date arrows on the Log screen). The database enforces a matching window so closed streak weeks can't be rewritten.
 
 ## How pairing works
 

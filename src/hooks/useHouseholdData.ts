@@ -11,7 +11,7 @@ const REALTIME_TABLES = ["profiles", "meal_logs", "weight_logs", "workout_logs"]
 
 export interface HouseholdData {
   profiles: Profile[];
-  meals: MealLog[]; // today only
+  meals: MealLog[]; // for mealDate (default today)
   weights: WeightLog[]; // recent
   workouts: WorkoutLog[]; // recent, for streak
   loading: boolean;
@@ -20,7 +20,8 @@ export interface HouseholdData {
   refresh: () => Promise<void>;
 }
 
-export function useHouseholdData(householdId: string): HouseholdData {
+export function useHouseholdData(householdId: string, options: { mealDate?: string } = {}): HouseholdData {
+  const { mealDate } = options;
   const supabase = useMemo(() => createClient(), []);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [meals, setMeals] = useState<MealLog[]>([]);
@@ -33,13 +34,14 @@ export function useHouseholdData(householdId: string): HouseholdData {
 
   const refresh = useCallback(async () => {
     const today = toLocalDate();
+    const mealDay = mealDate ?? today;
     const [p, m, w, wo] = await Promise.all([
       supabase
         .from("profiles")
         .select("id, display_name, household_id, calorie_target, protein_target, weight_unit, weekly_workout_target")
         .eq("household_id", householdId)
         .order("created_at"),
-      supabase.from("meal_logs").select("*").eq("household_id", householdId).eq("log_date", today).order("created_at"),
+      supabase.from("meal_logs").select("*").eq("household_id", householdId).eq("log_date", mealDay).order("created_at"),
       supabase
         .from("weight_logs")
         .select("*")
@@ -61,7 +63,7 @@ export function useHouseholdData(householdId: string): HouseholdData {
     if (w.data) setWeights(w.data.map((r) => ({ ...r, weight_kg: Number(r.weight_kg) })) as WeightLog[]);
     if (wo.data) setWorkouts(wo.data as WorkoutLog[]);
     setLoading(false);
-  }, [supabase, householdId]);
+  }, [supabase, householdId, mealDate]);
 
   useEffect(() => {
     // Initial load; state updates happen after the awaits resolve.
