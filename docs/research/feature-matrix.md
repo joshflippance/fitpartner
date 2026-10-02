@@ -2,7 +2,7 @@
 
 Scores 0 to 3 (see README section 4). Blank means not yet scored. Mark `*` when scored from marketing material rather than hands-on use.
 
-| Dimension | Fitbod | Hevy | Strong | JEFIT | MyFitnessPal | MacroFactor | Cronometer | Lose It! | Slot 9 (TBD) | Slot 10 (TBD) | FitPartner |
+| Dimension | Fitbod | Hevy | Strong | JEFIT | MyFitnessPal | MacroFactor | Cronometer | Lose It! | Sweatmates | GymRats | FitPartner |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Meal logging speed | | | | | | | | | | | |
 | Food database and barcode | | | | | | | | | | | |
@@ -23,7 +23,7 @@ Scores 0 to 3 (see README section 4). Blank means not yet scored. Mark `*` when 
 
 ## Totals
 
-| Group | Fitbod | Hevy | Strong | JEFIT | MyFitnessPal | MacroFactor | Cronometer | Lose It! | Slot 9 (TBD) | Slot 10 (TBD) | FitPartner |
+| Group | Fitbod | Hevy | Strong | JEFIT | MyFitnessPal | MacroFactor | Cronometer | Lose It! | Sweatmates | GymRats | FitPartner |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Logging | | | | | | | | | | | |
 | Guidance | | | | | | | | | | | |

@@ -1,7 +1,7 @@
 # FitPartner Competitive Research Plan
 
 **Owner:** Josh Flippance
-**Status:** Plan approved for setup, research not started
+**Status:** Phases 1 to 3 complete (desk research, unverified). Phase 4 hands-on next.
 **Started:** 2026-10-02
 
 ## 1. Purpose
@@ -28,8 +28,8 @@ Shared evidence lives in `feature-matrix.md` and `apps/<app>.md`. Every output c
 | 6 | Nutrition | MacroFactor |
 | 7 | Nutrition | Cronometer |
 | 8 | Nutrition | Lose It! |
-| 9 | Social / partner | TBD in Phase 1 |
-| 10 | Social / partner | TBD in Phase 1 |
+| 9 | Social / partner (couples) | Sweatmates |
+| 10 | Social / partner (groups) | GymRats |
 
 **Slots 9 and 10 selection rule:** apps where two or more people share goals, progress, or accountability. Prefer one couples-specific app and one broader accountability app. Candidates go to Josh for approval before Phase 2.
 
@@ -159,6 +159,6 @@ docs/research/
 
 | Decision | Status |
 |---|---|
-| Slots 9 and 10 | Pending Phase 1 |
+| Slots 9 and 10 | Approved 2026-10-02: Sweatmates, GymRats (fallback Coupleats) |
 | Paid trials to start (which apps, budget) | Pending |
 | Opportunity memo stays public or moves private | Revisit after Phase 6 |
