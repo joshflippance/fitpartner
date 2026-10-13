@@ -60,6 +60,7 @@ Supabase's built-in email sender is rate limited and meant for testing. Set up c
 | Supabase project | `fitpartner` (ref `fggbfvukmfjtoolnhfuc`), Canada Central |
 | Migrations applied | all 5 |
 | Security advisor | one expected warning: signed-in users can call the app RPCs (each checks the caller) |
+| Email confirmation | **Off** (Josh's choice, 2026-10-13, two known users). Turn back on with custom SMTP before any beta. |
 
 ### Performance notes for a public launch (not needed at 2 users)
 - Wrap `auth.uid()` in `(select auth.uid())` inside RLS policies so it runs once per query.

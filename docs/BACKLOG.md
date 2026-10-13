@@ -109,7 +109,7 @@ Items tagged with a **gate** only start if Josh picks that path in the [go or no
 
 **FP-11 Privacy policy, terms, account deletion, data export** (M)
 - **Why:** Other couples' body and food data is personal health information, and Canadian privacy law (PIPEDA) applies.
-- **Done when:** privacy and terms pages are live; self-serve account deletion removes the profile and logs; CSV export covers all of a person's data. A legal review is recommended before going public.
+- **Done when:** email confirmation is back on with custom SMTP (it was turned off for the two-person launch); privacy and terms pages are live; self-serve account deletion removes the profile and logs; CSV export covers all of a person's data. A legal review is recommended before going public.
 
 **FP-12 Product analytics and in-app feedback** (S)
 - **Why:** The beta thresholds in the memo need measuring, especially whether both partners log in 3 of 4 weeks ([memo](research/opportunity-memo.md)).
