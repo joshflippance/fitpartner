@@ -4,7 +4,7 @@
 **Date:** 2026-10-02
 **Status:** Order approved by Josh 2026-10-02.
 
-**Progress:** FP-01 waiting on Josh (account steps in [DEPLOY.md](DEPLOY.md)). FP-02 to FP-05 done 2026-10-02. FP-06 to FP-10 done 2026-10-13.
+**Progress:** FP-01 live 2026-10-13 at https://fitpartner-eight.vercel.app (auth settings pending, see [DEPLOY.md](DEPLOY.md)). FP-02 to FP-10 done.
 **Sources:** [Backlog inputs](research/backlog-inputs.md), [feature matrix](research/feature-matrix.md), [opportunity memo](research/opportunity-memo.md), current code ([README](../README.md)). Research is desk-based only; see the caveats in each file.
 
 ## How this is ordered
@@ -26,7 +26,7 @@ Items tagged with a **gate** only start if Josh picks that path in the [go or no
 
 | Rank | ID | Item | Epic | Effort | Gate | Depends on |
 |---|---|---|---|---|---|---|
-| 1 | FP-01 ⏳ | Deploy to production (Supabase project, Vercel, auth URLs) | Foundation | S | | |
+| 1 | FP-01 ✅ | Deploy to production (Supabase project, Vercel, auth URLs) | Foundation | S | | |
 | 2 | FP-02 ✅ | Log for past dates and edit entries | Foundation | S | | |
 | 3 | FP-03 ✅ | Password reset flow | Foundation | S | | FP-01 |
 | 4 | FP-04 ✅ | CI checks and unit tests for streak and dates | Foundation | S | | |

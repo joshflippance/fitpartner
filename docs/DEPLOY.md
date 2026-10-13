@@ -11,6 +11,7 @@ You do the account steps (they need your sign-ins and keys). Everything else is 
    2. `supabase/migrations/20261002010000_weekly_streak.sql`
    3. `supabase/migrations/20261002020000_log_date_window.sql`
    4. `supabase/migrations/20261013000000_partner_features.sql`
+   5. `supabase/migrations/20261013010000_harden_functions.sql`
 
    Or with the CLI: `supabase link --project-ref <ref>` then `supabase db push`.
 4. **Copy two values** from Project Settings > API: the project URL and the publishable key. Never use the secret key in this app.
@@ -50,3 +51,17 @@ Supabase's built-in email sender is rate limited and meant for testing. Set up c
 - Both partners signed in on the installed app
 - Realtime sync confirmed in both directions
 - Password reset email works on the production domain
+
+## Production (live since 2026-10-13)
+
+| Item | Value |
+|---|---|
+| App | https://fitpartner-eight.vercel.app |
+| Supabase project | `fitpartner` (ref `fggbfvukmfjtoolnhfuc`), Canada Central |
+| Migrations applied | all 5 |
+| Security advisor | one expected warning: signed-in users can call the app RPCs (each checks the caller) |
+
+### Performance notes for a public launch (not needed at 2 users)
+- Wrap `auth.uid()` in `(select auth.uid())` inside RLS policies so it runs once per query.
+- Add covering indexes on `user_id` foreign keys for `meal_logs` and `workout_logs`, and on `nudges.household_id`.
+

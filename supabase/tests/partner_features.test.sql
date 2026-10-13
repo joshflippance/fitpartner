@@ -128,3 +128,10 @@ do $$ begin
 exception when insufficient_privilege then perform assert(true, 'date window still enforced'); end $$;
 commit;
 \echo 'ALL DB TESTS PASSED'
+
+\echo '--- Function hardening'
+select assert(not has_function_privilege('anon', 'public.create_household(text)', 'execute'), 'anon cannot call create_household');
+select assert(not has_function_privilege('anon', 'public.send_nudge()', 'execute'), 'anon cannot call send_nudge');
+select assert(not has_function_privilege('authenticated', 'public.handle_new_user()', 'execute'), 'trigger function not callable by users');
+select assert(has_function_privilege('authenticated', 'public.review_workout(uuid, boolean)', 'execute'), 'signed-in users can still review workouts');
+\echo 'HARDENING TESTS PASSED'
