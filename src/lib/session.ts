@@ -12,7 +12,7 @@ export async function requireUser() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, display_name, household_id, calorie_target, protein_target, weight_unit, weekly_workout_target")
+    .select("id, display_name, household_id, calorie_target, protein_target, weight_unit, weekly_workout_target, share_weight, share_meals")
     .eq("id", userId)
     .single<Profile>();
   if (!profile) redirect("/login");

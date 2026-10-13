@@ -2,7 +2,7 @@ import { requireHousehold } from "@/lib/session";
 import { signOut } from "@/app/login/actions";
 import { Button, Card, Field, Input } from "@/components/ui";
 import { LeaveHousehold } from "@/components/LeaveHousehold";
-import { updateProfile } from "./actions";
+import { updatePrivacy, updateProfile } from "./actions";
 
 export default async function SettingsPage() {
   const { supabase, profile, household } = await requireHousehold();
@@ -47,6 +47,16 @@ export default async function SettingsPage() {
       </Card>
 
       <Card>
+        <h2 className="font-medium">What your partner sees</h2>
+        <p className="mb-4 mt-1 text-sm text-muted">Workouts are always shared because they drive the streak.</p>
+        <form action={updatePrivacy} className="space-y-1">
+          <Toggle name="share_meals" label="Meals, calories and protein" defaultChecked={profile.share_meals} />
+          <Toggle name="share_weight" label="Weight" defaultChecked={profile.share_weight} />
+          <Button type="submit" variant="ghost" className="mt-3 w-full">Save privacy</Button>
+        </form>
+      </Card>
+
+      <Card>
         <h2 className="font-medium">{household.name}</h2>
         <p className="mt-1 text-sm text-muted">Pairing code</p>
         <p className="mt-1 font-mono text-2xl tracking-[0.25em] text-you">{household.pair_code}</p>
@@ -59,5 +69,23 @@ export default async function SettingsPage() {
         <LeaveHousehold householdName={household.name} isLastMember={(count ?? 1) <= 1} />
       </div>
     </div>
+  );
+}
+
+function Toggle({ name, label, defaultChecked }: { name: string; label: string; defaultChecked: boolean }) {
+  return (
+    <label className="flex cursor-pointer items-center justify-between gap-4 py-2.5">
+      <span>{label}</span>
+      <input
+        type="checkbox"
+        name={name}
+        defaultChecked={defaultChecked}
+        className="peer sr-only"
+      />
+      <span
+        aria-hidden
+        className="relative h-7 w-12 shrink-0 rounded-full bg-surface-2 ring-1 ring-line transition peer-checked:bg-you peer-focus-visible:ring-2 peer-focus-visible:ring-you after:absolute after:left-1 after:top-1 after:size-5 after:rounded-full after:bg-text after:transition peer-checked:after:translate-x-5 peer-checked:after:bg-black"
+      />
+    </label>
   );
 }

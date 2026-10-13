@@ -26,3 +26,15 @@ export async function leaveHousehold() {
   await supabase.rpc("leave_household");
   redirect("/pair");
 }
+
+export async function updatePrivacy(formData: FormData) {
+  const { supabase, userId } = await requireUser();
+  await supabase
+    .from("profiles")
+    .update({
+      share_weight: formData.get("share_weight") === "on",
+      share_meals: formData.get("share_meals") === "on",
+    })
+    .eq("id", userId);
+  revalidatePath("/", "layout");
+}

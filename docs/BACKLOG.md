@@ -4,7 +4,7 @@
 **Date:** 2026-10-02
 **Status:** Order approved by Josh 2026-10-02.
 
-**Progress:** FP-01 waiting on Josh (account steps in [DEPLOY.md](DEPLOY.md)). FP-02 to FP-05 done 2026-10-02.
+**Progress:** FP-01 waiting on Josh (account steps in [DEPLOY.md](DEPLOY.md)). FP-02 to FP-05 done 2026-10-02. FP-06 to FP-10 done 2026-10-13.
 **Sources:** [Backlog inputs](research/backlog-inputs.md), [feature matrix](research/feature-matrix.md), [opportunity memo](research/opportunity-memo.md), current code ([README](../README.md)). Research is desk-based only; see the caveats in each file.
 
 ## How this is ordered
@@ -31,11 +31,11 @@ Items tagged with a **gate** only start if Josh picks that path in the [go or no
 | 3 | FP-03 ✅ | Password reset flow | Foundation | S | | FP-01 |
 | 4 | FP-04 ✅ | CI checks and unit tests for streak and dates | Foundation | S | | |
 | 5 | FP-05 ✅ | Confirm before leaving a household | Foundation | S | | |
-| 6 | FP-06 | Weight trend line and history views | Progress | S to M | | |
-| 7 | FP-07 | Recent meals quick add and copy yesterday | Logging speed | S | | |
-| 8 | FP-08 | Log once for both: copy a partner's meal with my own portion | Couples | M | | FP-07 |
-| 9 | FP-09 | Partner nudge and Pinky Promise | Couples | S | | FP-02 |
-| 10 | FP-10 | Per-metric privacy toggle | Couples | S | | |
+| 6 | FP-06 ✅ | Weight trend line and history views | Progress | S to M | | |
+| 7 | FP-07 ✅ | Recent meals quick add and copy yesterday | Logging speed | S | | |
+| 8 | FP-08 ✅ | Log once for both: copy a partner's meal with my own portion | Couples | M | | FP-07 |
+| 9 | FP-09 ✅ | Partner nudge and Pinky Promise | Couples | S | | FP-02 |
+| 10 | FP-10 ✅ | Per-metric privacy toggle | Couples | S | | |
 | 11 | FP-11 | Privacy policy, terms, account deletion, data export | Trust | M | Beta | FP-01 |
 | 12 | FP-12 | Product analytics and in-app feedback | Learning | S | Beta | FP-01 |
 | 13 | FP-13 | Error monitoring | Foundation | S | Beta | FP-01 |

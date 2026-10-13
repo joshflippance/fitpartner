@@ -6,10 +6,11 @@ You do the account steps (they need your sign-ins and keys). Everything else is 
 
 1. Create a new project at supabase.com. Pick the region closest to you (Canada Central for Burlington).
 2. Save the database password somewhere safe.
-3. **Run the migrations in order** in SQL Editor, one at a time:
+3. **Run the migrations in filename order** in SQL Editor, one at a time:
    1. `supabase/migrations/20261002000000_init.sql`
    2. `supabase/migrations/20261002010000_weekly_streak.sql`
    3. `supabase/migrations/20261002020000_log_date_window.sql`
+   4. `supabase/migrations/20261013000000_partner_features.sql`
 
    Or with the CLI: `supabase link --project-ref <ref>` then `supabase db push`.
 4. **Copy two values** from Project Settings > API: the project URL and the publishable key. Never use the secret key in this app.

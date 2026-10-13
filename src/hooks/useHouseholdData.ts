@@ -3,30 +3,42 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { addDays, toLocalDate } from "@/lib/dates";
-import type { MealLog, Profile, WeightLog, WorkoutLog } from "@/lib/types";
+import type { MealLog, Nudge, Profile, WeightLog, WorkoutLog } from "@/lib/types";
 
 const STREAK_LOOKBACK_DAYS = 365;
 const WEIGHT_LOOKBACK_DAYS = 60;
-const REALTIME_TABLES = ["profiles", "meal_logs", "weight_logs", "workout_logs"] as const;
+const REALTIME_TABLES = ["profiles", "meal_logs", "weight_logs", "workout_logs", "nudges"] as const;
+const NUDGE_LOOKBACK_HOURS = 24;
+
+export interface HouseholdDataOptions {
+  /** Meals from this date (inclusive). Defaults to today. */
+  mealFrom?: string;
+  /** Meals up to this date (inclusive). Defaults to today. */
+  mealTo?: string;
+  /** Days of weigh-ins to load. Defaults to 60. */
+  weightDays?: number;
+}
 
 export interface HouseholdData {
   profiles: Profile[];
-  meals: MealLog[]; // for mealDate (default today)
+  meals: MealLog[]; // mealFrom..mealTo (default today)
   weights: WeightLog[]; // recent
   workouts: WorkoutLog[]; // recent, for streak
+  nudges: Nudge[]; // last 24h, sent or received
   loading: boolean;
   error: string | null;
   live: boolean; // realtime channel connected
   refresh: () => Promise<void>;
 }
 
-export function useHouseholdData(householdId: string, options: { mealDate?: string } = {}): HouseholdData {
-  const { mealDate } = options;
+export function useHouseholdData(householdId: string, options: HouseholdDataOptions = {}): HouseholdData {
+  const { mealFrom, mealTo, weightDays = WEIGHT_LOOKBACK_DAYS } = options;
   const supabase = useMemo(() => createClient(), []);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [meals, setMeals] = useState<MealLog[]>([]);
   const [weights, setWeights] = useState<WeightLog[]>([]);
   const [workouts, setWorkouts] = useState<WorkoutLog[]>([]);
+  const [nudges, setNudges] = useState<Nudge[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [live, setLive] = useState(false);
@@ -34,19 +46,28 @@ export function useHouseholdData(householdId: string, options: { mealDate?: stri
 
   const refresh = useCallback(async () => {
     const today = toLocalDate();
-    const mealDay = mealDate ?? today;
-    const [p, m, w, wo] = await Promise.all([
+    const since = new Date(Date.now() - NUDGE_LOOKBACK_HOURS * 3_600_000).toISOString();
+    const [p, m, w, wo, n] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id, display_name, household_id, calorie_target, protein_target, weight_unit, weekly_workout_target")
+        .select(
+          "id, display_name, household_id, calorie_target, protein_target, weight_unit, weekly_workout_target, share_weight, share_meals",
+        )
         .eq("household_id", householdId)
         .order("created_at"),
-      supabase.from("meal_logs").select("*").eq("household_id", householdId).eq("log_date", mealDay).order("created_at"),
+      supabase
+        .from("meal_logs")
+        .select("*")
+        .eq("household_id", householdId)
+        .gte("log_date", mealFrom ?? today)
+        .lte("log_date", mealTo ?? today)
+        .order("log_date")
+        .order("created_at"),
       supabase
         .from("weight_logs")
         .select("*")
         .eq("household_id", householdId)
-        .gte("log_date", addDays(today, -WEIGHT_LOOKBACK_DAYS))
+        .gte("log_date", addDays(today, -weightDays))
         .order("log_date", { ascending: false }),
       supabase
         .from("workout_logs")
@@ -54,16 +75,18 @@ export function useHouseholdData(householdId: string, options: { mealDate?: stri
         .eq("household_id", householdId)
         .gte("log_date", addDays(today, -STREAK_LOOKBACK_DAYS))
         .order("log_date", { ascending: false }),
+      supabase.from("nudges").select("*").eq("household_id", householdId).gte("created_at", since).order("created_at", { ascending: false }),
     ]);
 
-    const firstError = [p, m, w, wo].find((r) => r.error)?.error;
+    const firstError = [p, m, w, wo, n].find((r) => r.error)?.error;
     setError(firstError ? firstError.message : null);
     if (p.data) setProfiles(p.data as Profile[]);
     if (m.data) setMeals(m.data.map((r) => ({ ...r, protein_g: Number(r.protein_g) })) as MealLog[]);
     if (w.data) setWeights(w.data.map((r) => ({ ...r, weight_kg: Number(r.weight_kg) })) as WeightLog[]);
     if (wo.data) setWorkouts(wo.data as WorkoutLog[]);
+    if (n.data) setNudges(n.data as Nudge[]);
     setLoading(false);
-  }, [supabase, householdId, mealDate]);
+  }, [supabase, householdId, mealFrom, mealTo, weightDays]);
 
   useEffect(() => {
     // Initial load; state updates happen after the awaits resolve.
@@ -98,5 +121,5 @@ export function useHouseholdData(householdId: string, options: { mealDate?: stri
     };
   }, [supabase, householdId, refresh]);
 
-  return { profiles, meals, weights, workouts, loading, error, live, refresh };
+  return { profiles, meals, weights, workouts, nudges, loading, error, live, refresh };
 }

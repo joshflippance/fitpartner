@@ -16,6 +16,8 @@ export interface Profile {
   protein_target: number;
   weight_unit: WeightUnit;
   weekly_workout_target: number;
+  share_weight: boolean;
+  share_meals: boolean;
 }
 
 export interface MealLog {
@@ -46,5 +48,20 @@ export interface WorkoutLog {
   name: string;
   duration_min: number | null;
   notes: string | null;
+  status: WorkoutStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
   created_at: string;
+}
+
+/** counted: adds to the streak. pending: logged late, waiting on the partner. declined: partner said no. */
+export type WorkoutStatus = "counted" | "pending" | "declined";
+
+export interface Nudge {
+  id: string;
+  household_id: string;
+  from_user: string;
+  to_user: string;
+  created_at: string;
+  seen_at: string | null;
 }

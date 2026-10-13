@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { weekStart, weeklyWorkoutStreak } from "./streak";
+import type { WorkoutStatus } from "./types";
 
 const members = [
   { id: "josh", weekly_workout_target: 3 },
@@ -58,6 +59,19 @@ describe("weeklyWorkoutStreak", () => {
   it("works for a single member before the partner joins", () => {
     const solo = logs("josh", "2026-09-21", "2026-09-23", "2026-09-25");
     expect(weeklyWorkoutStreak(solo, [members[0]], TODAY).streak).toBe(1);
+  });
+
+  it("skips pending and declined workouts until the partner approves", () => {
+    const week: { user_id: string; log_date: string; status?: WorkoutStatus }[] = [
+      ...logs("josh", "2026-09-21", "2026-09-23"),
+      { user_id: "josh", log_date: "2026-09-25", status: "pending" },
+      ...logs("april", "2026-09-22", "2026-09-24"),
+    ];
+    expect(weeklyWorkoutStreak(week, members, TODAY).streak).toBe(0);
+    week[2] = { ...week[2], status: "counted" };
+    expect(weeklyWorkoutStreak(week, members, TODAY).streak).toBe(1);
+    week[2] = { ...week[2], status: "declined" };
+    expect(weeklyWorkoutStreak(week, members, TODAY).streak).toBe(0);
   });
 
   it("returns zero with no members", () => {

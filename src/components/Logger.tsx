@@ -6,7 +6,9 @@ import { useHouseholdData } from "@/hooks/useHouseholdData";
 import { addDays, toLocalDate } from "@/lib/dates";
 import { dayLabel, loggableRange } from "@/lib/logging";
 import { formatWeight, fromKg, toKg } from "@/lib/units";
+import { recentMeals, scaleMeal, type MealTemplate } from "@/lib/meals";
 import type { MealLog, WeightLog, WorkoutLog } from "@/lib/types";
+import { PortionSheet } from "./PortionSheet";
 import { Button, Card, Field, Input } from "./ui";
 
 type Tab = "meal" | "weight" | "workout";
@@ -30,14 +32,18 @@ export function Logger({ userId, householdId }: { userId: string; householdId: s
   const range = loggableRange(today);
 
   const [date, setDate] = useState(today);
-  const { profiles, meals, weights, workouts } = useHouseholdData(householdId, { mealDate: date });
+  // 30 days of meals feeds the recent-meal chips and "copy yesterday".
+  const { profiles, meals, weights, workouts } = useHouseholdData(householdId, { mealFrom: addDays(date, -30), mealTo: date });
   const me = profiles.find((p) => p.id === userId);
+  const partner = profiles.find((p) => p.id !== userId);
   const unit = me?.weight_unit ?? "lb";
 
   const [tab, setTab] = useState<Tab>("meal");
   const [editing, setEditing] = useState<Editing>(null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [copying, setCopying] = useState<MealLog | null>(null);
+  const [confirmYesterday, setConfirmYesterday] = useState(false);
 
   const base = { user_id: userId, household_id: householdId, log_date: date };
 
@@ -110,10 +116,23 @@ export function Logger({ userId, householdId }: { userId: string; householdId: s
     );
   }
 
+  const addMeal = (m: MealTemplate, label = `Added ${m.name}`) =>
+    run(() => supabase.from("meal_logs").insert({ ...base, ...m }), label);
+
+  function copyYesterday() {
+    const rows = yesterdayMeals.map((m) => ({ ...base, name: m.name, calories: m.calories, protein_g: m.protein_g }));
+    setConfirmYesterday(false);
+    void run(() => supabase.from("meal_logs").insert(rows), `Copied ${rows.length} ${rows.length === 1 ? "meal" : "meals"}`);
+  }
+
   const remove = (table: "meal_logs" | "weight_logs" | "workout_logs", id: string) =>
     run(() => supabase.from(table).delete().eq("id", id), "Removed");
 
-  const myMeals = meals.filter((m) => m.user_id === userId);
+  const myMeals = meals.filter((m) => m.user_id === userId && m.log_date === date);
+  const yesterdayMeals = meals.filter((m) => m.user_id === userId && m.log_date === addDays(date, -1));
+  const yesterdayKcal = yesterdayMeals.reduce((sum, m) => sum + m.calories, 0);
+  const partnerMeals = partner ? meals.filter((m) => m.user_id === partner.id && m.log_date === date) : [];
+  const chips = recentMeals(meals, userId);
   const myWeight = weights.find((w) => w.user_id === userId && w.log_date === date);
   const myWorkouts = workouts.filter((w) => w.user_id === userId && w.log_date === date);
 
@@ -151,6 +170,45 @@ export function Logger({ userId, householdId }: { userId: string; householdId: s
             <button onClick={() => setEditing(null)} className="text-muted underline-offset-4 hover:underline">
               Cancel
             </button>
+          </div>
+        )}
+
+        {tab === "meal" && !editing && (chips.length > 0 || yesterdayMeals.length > 0) && (
+          <div className="mb-5 space-y-3 border-b border-line pb-5">
+            {chips.length > 0 && (
+              <div>
+                <p className="mb-2 text-sm text-muted">Quick add</p>
+                <div className="-mx-1 flex flex-wrap gap-2">
+                  {chips.map((m) => (
+                    <button
+                      key={`${m.name}|${m.calories}|${m.protein_g}`}
+                      onClick={() => void addMeal(m)}
+                      disabled={busy}
+                      className="rounded-full border border-line bg-surface-2 px-3 py-1.5 text-left text-sm active:scale-[0.97] disabled:opacity-50"
+                    >
+                      <span>{m.name}</span>
+                      <span className="ml-1.5 text-xs text-muted tabular-nums">{m.calories}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {yesterdayMeals.length > 0 &&
+              (confirmYesterday ? (
+                <div className="flex items-center justify-between gap-2 rounded-xl bg-surface-2 px-3 py-2 text-sm">
+                  <span>
+                    Add {yesterdayMeals.length} {yesterdayMeals.length === 1 ? "meal" : "meals"}, {yesterdayKcal.toLocaleString()} kcal?
+                  </span>
+                  <span className="flex gap-3">
+                    <button onClick={() => setConfirmYesterday(false)} className="text-muted">Cancel</button>
+                    <button onClick={copyYesterday} disabled={busy} className="font-medium text-you">Add</button>
+                  </span>
+                </div>
+              ) : (
+                <button onClick={() => setConfirmYesterday(true)} className="text-sm text-you underline-offset-4 hover:underline">
+                  Copy {dayLabel(addDays(date, -1), today).toLowerCase()}&apos;s meals ({yesterdayMeals.length})
+                </button>
+              ))}
           </div>
         )}
 
@@ -212,6 +270,48 @@ export function Logger({ userId, householdId }: { userId: string; householdId: s
         </p>
       )}
 
+      {partner && tab === "meal" && (
+        <Card>
+          <h2 className="mb-1 font-medium">{partner.display_name}&apos;s meals</h2>
+          <p className="mb-3 text-sm text-muted">Ate the same thing? Add it to yours with your own portion.</p>
+          {!partner.share_meals ? (
+            <p className="text-sm text-muted">{partner.display_name} keeps meals private.</p>
+          ) : partnerMeals.length === 0 ? (
+            <p className="text-sm text-muted">Nothing logged {dayLabel(date, today).toLowerCase()}.</p>
+          ) : (
+            <ul className="divide-y divide-line text-sm">
+              {partnerMeals.map((m) => (
+                <li key={m.id} className="flex items-center justify-between gap-3 py-2.5">
+                  <span className="min-w-0">
+                    <span className="block truncate">{m.name}</span>
+                    <span className="text-xs text-muted tabular-nums">{m.calories} kcal · {m.protein_g}g</span>
+                  </span>
+                  <button
+                    onClick={() => setCopying(m)}
+                    className="shrink-0 rounded-full border border-partner/40 px-3 py-1.5 text-xs font-medium text-partner"
+                  >
+                    Add to mine
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      )}
+
+      {copying && (
+        <PortionSheet
+          meal={copying}
+          busy={busy}
+          onCancel={() => setCopying(null)}
+          onAdd={(factor) => {
+            const scaled = scaleMeal(copying, factor);
+            setCopying(null);
+            void addMeal(scaled, `Added ${scaled.name} (${scaled.calories} kcal)`);
+          }}
+        />
+      )}
+
       <Card>
         <h2 className="mb-3 font-medium">Your entries, {dayLabel(date, today).toLowerCase()}</h2>
         <ul className="divide-y divide-line text-sm">
@@ -227,7 +327,15 @@ export function Logger({ userId, householdId }: { userId: string; householdId: s
             <Row
               key={w.id}
               label={w.name}
-              detail={w.duration_min ? `${w.duration_min} min` : "Workout"}
+              detail={
+                w.status === "pending"
+                  ? `Waiting for ${partner?.display_name ?? "partner"}`
+                  : w.status === "declined"
+                    ? "Not counted"
+                    : w.duration_min
+                      ? `${w.duration_min} min`
+                      : "Workout"
+              }
               onEdit={() => startEdit({ kind: "workout", row: w })}
               onDelete={() => remove("workout_logs", w.id)}
             />

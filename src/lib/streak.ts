@@ -26,13 +26,15 @@ export interface WeeklyStreak {
  * streak once it's complete; until then the streak runs through last week.
  */
 export function weeklyWorkoutStreak(
-  workouts: Pick<WorkoutLog, "user_id" | "log_date">[],
+  workouts: (Pick<WorkoutLog, "user_id" | "log_date"> & { status?: WorkoutLog["status"] })[],
   members: Pick<Profile, "id" | "weekly_workout_target">[],
   today: string = toLocalDate(),
 ): WeeklyStreak {
   // week -> user -> distinct days
   const days = new Map<string, Map<string, Set<string>>>();
   for (const w of workouts) {
+    // Late workouts only count once the partner approves them (Pinky Promise).
+    if (w.status && w.status !== "counted") continue;
     const wk = weekStart(w.log_date);
     if (!days.has(wk)) days.set(wk, new Map());
     const byUser = days.get(wk)!;

@@ -25,11 +25,12 @@ Mobile-first PWA for two people to track calories, protein, body weight and work
 | Command | What it does |
 |---|---|
 | `npm run dev` | Local dev server |
-| `npm test` | Unit tests (Vitest) for streak, date and logging window logic |
+| `npm test` | Unit tests (Vitest): streak, dates, logging window, weight trend, meal helpers |
+| `npm run test:db` | Applies all migrations to a scratch Postgres and runs the RLS and trigger tests in `supabase/tests/` (needs `PG*` env vars) |
 | `npm run typecheck` | Generates route types and runs `tsc` |
 | `npm run lint` | ESLint |
 
-CI runs lint, typecheck, tests and build on every push (`.github/workflows/ci.yml`). Production setup is in [docs/DEPLOY.md](docs/DEPLOY.md).
+CI runs lint, typecheck, unit tests, build and the database tests on every push (`.github/workflows/ci.yml`). Production setup is in [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ## Logging window
 
@@ -54,14 +55,17 @@ src/
     pair/             create or join a household
     auth/confirm/     email confirmation callback
     manifest.json     PWA manifest (standalone, icons)
-  components/         Dashboard, Logger, PairForm, ProgressBar, BottomNav, ui
+  components/         Dashboard, Logger, History, WeightChart, PortionSheet, PairForm, ProgressBar, BottomNav, ui
   hooks/useHouseholdData.ts   loads household data + Supabase Realtime subscription
   lib/
     supabase/         browser, server and proxy clients
     streak.ts         shared weekly streak
+    trend.ts          smoothed weight trend
+    meals.ts          recent meals and portion scaling
     session.ts        requireUser / requireHousehold guards
   proxy.ts            session refresh + auth redirects (Next 16 "proxy", formerly middleware)
 supabase/migrations/  schema, RLS policies, pairing RPCs, realtime publication
+supabase/tests/       Postgres tests for RLS and triggers (run by scripts/test-db.sh)
 scripts/generate-icons.mjs  regenerates PWA icons
 ```
 
@@ -70,12 +74,22 @@ scripts/generate-icons.mjs  regenerates PWA icons
 | Table | Notes |
 |---|---|
 | `households` | name, unique `pair_code` |
-| `profiles` | 1:1 with `auth.users`, auto-created on signup; calorie/protein targets, weekly workout target, weight unit, `household_id` |
+| `profiles` | 1:1 with `auth.users`, auto-created on signup; calorie/protein targets, weekly workout target, weight unit, `household_id`, `share_meals`, `share_weight` |
 | `meal_logs` | per meal: calories, protein |
 | `weight_logs` | one per user per day, stored in kg |
-| `workout_logs` | name, duration, notes |
+| `workout_logs` | name, duration, notes, `status` (counted, pending, declined) |
+| `nudges` | partner nudges; created only through `send_nudge()` (1 hour cooldown) |
 
-RLS: you read everything in your household, and write only your own rows.
+RLS: you write only your own rows. You read your partner's workouts always, and their meals and weight only when they share them (`can_see()`).
+
+## Partner features
+
+- **Log once for both:** on the Log screen, "Add to mine" copies a partner's meal at your own portion.
+- **Quick add:** your 10 most recent distinct meals as one-tap chips, plus "copy yesterday".
+- **Nudges:** one tap on the partner's dashboard card; they see a banner in real time.
+- **Pinky Promise:** a workout dated more than 2 days before it's logged (`late_log_days()`) is pending until the partner taps "Count it". Pending and declined workouts don't count toward the streak. Status is set by a trigger, so it can't be forged from the client. Solo households skip the check.
+- **Privacy:** Settings toggles for sharing meals and weight. Enforced in the database, not just hidden in the UI.
+- **History:** smoothed weight trend per person (30 days, 90 days, 1 year) and a week view of both partners' calories, protein and workouts.
 
 ## Weekly streak
 
@@ -83,7 +97,7 @@ Each person sets a weekly workout target in Settings (default 3). A week counts 
 
 ## Real-time sync
 
-`useHouseholdData` subscribes to `postgres_changes` on all four tables, filtered to the household. Any change triggers a debounced refetch, so totals and the streak stay correct for inserts, edits and deletes. It also refetches when the app returns to the foreground.
+`useHouseholdData` subscribes to `postgres_changes` on all five tables, filtered to the household. Any change triggers a debounced refetch, so totals and the streak stay correct for inserts, edits and deletes. It also refetches when the app returns to the foreground.
 
 ## Not in the MVP yet
 
