@@ -12,6 +12,7 @@ You do the account steps (they need your sign-ins and keys). Everything else is 
    3. `supabase/migrations/20261002020000_log_date_window.sql`
    4. `supabase/migrations/20261013000000_partner_features.sql`
    5. `supabase/migrations/20261013010000_harden_functions.sql`
+   6. `supabase/migrations/20261019000000_lifting.sql`
 
    Or with the CLI: `supabase link --project-ref <ref>` then `supabase db push`.
 4. **Copy two values** from Project Settings > API: the project URL and the publishable key. Never use the secret key in this app.
@@ -58,7 +59,7 @@ Supabase's built-in email sender is rate limited and meant for testing. Set up c
 |---|---|
 | App | https://fitpartner-eight.vercel.app |
 | Supabase project | `fitpartner` (ref `fggbfvukmfjtoolnhfuc`), Canada Central |
-| Migrations applied | all 5 |
+| Migrations applied | 1 to 5; 6 (lifting) pending paste in SQL Editor |
 | Security advisor | one expected warning: signed-in users can call the app RPCs (each checks the caller) |
 | Email confirmation | **Off** (Josh's choice, 2026-10-13, two known users). Turn back on with custom SMTP before any beta. |
 

@@ -48,6 +48,10 @@ export interface WorkoutLog {
   name: string;
   duration_min: number | null;
   notes: string | null;
+  routine_id?: string | null;
+  location_id?: string | null;
+  started_at?: string | null;
+  finished_at?: string | null;
   status: WorkoutStatus;
   reviewed_by: string | null;
   reviewed_at: string | null;
@@ -64,4 +68,63 @@ export interface Nudge {
   to_user: string;
   created_at: string;
   seen_at: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Lifting (FP-15)
+// ---------------------------------------------------------------------------
+
+export type MuscleGroup =
+  | "chest" | "back" | "shoulders" | "biceps" | "triceps"
+  | "quads" | "hamstrings" | "glutes" | "calves" | "core" | "full_body";
+
+export interface Location {
+  id: string;
+  household_id: string;
+  name: string;
+  equipment: string[];
+  created_by: string | null;
+}
+
+export interface Exercise {
+  id: string;
+  household_id: string | null;
+  name: string;
+  muscle_group: MuscleGroup;
+  equipment: string[];
+  created_by: string | null;
+  archived: boolean;
+}
+
+export interface Routine {
+  id: string;
+  household_id: string;
+  owner_id: string;
+  name: string;
+  notes: string | null;
+  copied_from: string | null;
+  updated_at: string;
+}
+
+export interface RoutineExercise {
+  id: string;
+  routine_id: string;
+  exercise_id: string;
+  position: number;
+  target_sets: number;
+  rep_min: number;
+  rep_max: number;
+  rest_seconds: number;
+}
+
+export interface WorkoutSet {
+  id: string;
+  workout_id: string;
+  user_id: string;
+  household_id: string;
+  exercise_id: string;
+  set_number: number;
+  reps: number;
+  weight_kg: number;
+  created_at: string;
 }

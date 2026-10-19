@@ -79,6 +79,10 @@ scripts/generate-icons.mjs  regenerates PWA icons
 | `weight_logs` | one per user per day, stored in kg |
 | `workout_logs` | name, duration, notes, `status` (counted, pending, declined) |
 | `nudges` | partner nudges; created only through `send_nudge()` (1 hour cooldown) |
+| `exercises` | starter library (`household_id` null) plus household custom exercises; muscle group and required equipment |
+| `locations` | shared named places (Home, Gym) with an equipment list |
+| `routines`, `routine_exercises` | household routines; owner edits, partner can use or `copy_routine()`; per exercise sets, rep range, rest |
+| `workout_sets` | per-set reps and weight (kg) for a workout in `workout_logs` |
 
 RLS: you write only your own rows. You read your partner's workouts always, and their meals and weight only when they share them (`can_see()`).
 
@@ -90,6 +94,14 @@ RLS: you write only your own rows. You read your partner's workouts always, and 
 - **Pinky Promise:** a workout dated more than 2 days before it's logged (`late_log_days()`) is pending until the partner taps "Count it". Pending and declined workouts don't count toward the streak. Status is set by a trigger, so it can't be forged from the client. Solo households skip the check.
 - **Privacy:** Settings toggles for sharing meals and weight. Enforced in the database, not just hidden in the UI.
 - **History:** smoothed weight trend per person (30 days, 90 days, 1 year) and a week view of both partners' calories, protein and workouts.
+
+## Lifting
+
+- **Lift tab:** pick a location, start a routine or an empty workout, resume one in progress.
+- **Session:** each exercise shows a target and the reason, last session's sets, and set rows prefilled with the target. Tap ✓ to log a set and start the rest timer. Tap a logged set to edit or delete it.
+- **Progression (`src/lib/progression.ts`):** rep ranges. Same weight and one more rep until every working set hits the top of the range, then add 5 lb upper or 10 lb lower body (2.5 or 5 kg) and drop to the bottom of the range.
+- **Exercises and locations:** exercises list the equipment they need; a location filters the library to what it has. Bodyweight is always available.
+- A finished lifting session is a normal `workout_logs` row, so it counts toward the weekly streak.
 
 ## Weekly streak
 
@@ -103,5 +115,4 @@ Each person sets a weekly workout target in Settings (default 3). A week counts 
 
 - Service worker / offline logging
 - Food database or barcode lookup
-- Exercise-level lift tracking (sets, reps, weight)
-- History and weight trend charts
+- Program templates and AI-generated sessions (deferred)

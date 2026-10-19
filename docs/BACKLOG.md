@@ -4,7 +4,7 @@
 **Date:** 2026-10-02
 **Status:** Order approved by Josh 2026-10-02.
 
-**Progress:** FP-01 live 2026-10-13 at https://fitpartner-eight.vercel.app (auth settings pending, see [DEPLOY.md](DEPLOY.md)). FP-02 to FP-10 done.
+**Progress:** FP-01 to FP-10 done. FP-15 built 2026-10-19 with next-set suggestions, custom exercises, equipment locations and routines (expanded scope approved by Josh).
 **Sources:** [Backlog inputs](research/backlog-inputs.md), [feature matrix](research/feature-matrix.md), [opportunity memo](research/opportunity-memo.md), current code ([README](../README.md)). Research is desk-based only; see the caveats in each file.
 
 ## How this is ordered
@@ -40,7 +40,7 @@ Items tagged with a **gate** only start if Josh picks that path in the [go or no
 | 12 | FP-12 | Product analytics and in-app feedback | Learning | S | Beta | FP-01 |
 | 13 | FP-13 | Error monitoring | Foundation | S | Beta | FP-01 |
 | 14 | FP-14 | Onboarding target helper (calories and protein) | Guidance | S to M | Beta | |
-| 15 | FP-15 | Sets, reps and weight logging | Lifting | L | | |
+| 15 | FP-15 ✅ | Sets, reps and weight logging | Lifting | L | | |
 | 16 | FP-16 | Saved household meals and recipes | Couples | M | | FP-08 |
 | 17 | FP-17 | Reminders via web push | Engagement | M | | FP-01 |
 | 18 | FP-18 | Offline logging | Foundation | M | | |
@@ -128,7 +128,10 @@ Items tagged with a **gate** only start if Josh picks that path in the [go or no
 
 ### Next
 
-**FP-15 Sets, reps and weight logging** (L)
+**FP-15 Sets, reps and weight logging** (L) ✅ shipped 2026-10-19
+
+Scope added by Josh: next-set suggestions (rep-range progression), custom exercises, shared equipment locations, and household routines that the owner edits and the partner can use or copy.
+
 - **Why:** It closes the lifting half of the "replace two apps" story. Fast set logging is the top praise theme for Hevy and Strong ([hevy](research/apps/hevy.md), [strong](research/apps/strong.md)).
 - **Done when:**
   - **Data:** a workout holds exercises, each with sets of reps and weight; a seeded list of common exercises allows custom additions.
