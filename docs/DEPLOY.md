@@ -59,7 +59,7 @@ Supabase's built-in email sender is rate limited and meant for testing. Set up c
 |---|---|
 | App | https://fitpartner-eight.vercel.app |
 | Supabase project | `fitpartner` (ref `fggbfvukmfjtoolnhfuc`), Canada Central |
-| Migrations applied | 1 to 5; 6 (lifting) pending paste in SQL Editor |
+| Migrations applied | 1 to 6 (lifting applied 2026-10-25) |
 | Security advisor | one expected warning: signed-in users can call the app RPCs (each checks the caller) |
 | Email confirmation | **Off** (Josh's choice, 2026-10-13, two known users). Turn back on with custom SMTP before any beta. |
 

@@ -8,10 +8,11 @@ Read this first in every session. Update the **Status** section when you finish 
 
 Couples fitness PWA for Josh and his partner April: shared real-time dashboard of calories, protein, weight and workouts, with a weekly streak that counts only when both hit their targets. Built for the two of them first; public launch is undecided.
 
-## Status (last updated 2026-10-19)
+## Status (last updated 2026-10-25)
 
 - **Live:** https://fitpartner-eight.vercel.app (Vercel, auto-deploys from `main`)
-- **Database:** Supabase project `fitpartner` (ref `fggbfvukmfjtoolnhfuc`), Canada Central. Migrations 1 to 5 applied; 6 (`20261019000000_lifting.sql`) must be pasted by Josh in the SQL Editor
+- **Database:** Supabase project `fitpartner` (ref `fggbfvukmfjtoolnhfuc`), Canada Central. Migrations 1 to 6 applied (6 in two parts: tables via MCP, `save_routine_exercises` pasted by Josh)
+- **Not yet done by Josh and April:** sign up and pair on the live app (0 profiles as of 2026-10-25)
 - **Done:** FP-01 to FP-10, FP-15 with lifting extras (see `docs/BACKLOG.md`)
 - **Lifting design (Josh's choices):** routines shared by the household, owner edits, partner uses or copies; shared named locations with equipment lists; rep-range progression (hit the top of the range on every set, then add 5 lb upper or 10 lb lower, 2.5 or 5 kg)
 - **Next in backlog order:** FP-11 to FP-14 are gated on the launch path decision; FP-16 (saved household meals) is the next ungated item. Workout recommendations beyond next-set suggestions (program templates or AI sessions) were deferred until after real use
@@ -46,6 +47,6 @@ Couples fitness PWA for Josh and his partner April: shared real-time dashboard o
 - `git pull` before starting; commit and push when done. The repo is the source of truth across web, Desktop and cloud sessions.
 - Run `npm run lint`, `npm run typecheck`, `npm test` before pushing. CI also runs the database tests.
 - Schema changes go in a new migration file, never edit applied ones. Add a test in `supabase/tests/` for any access rule.
-- Applying migrations to production needs Josh's approval in the Supabase prompt. If the tool call is cancelled, send him the SQL to paste instead of retrying.
+- Applying migrations to production needs Josh's approval in the Supabase prompt. If the tool call is cancelled, send him the SQL to paste instead of retrying. Statements containing `drop` or `delete` are always cancelled from cloud sessions, so plan for a paste.
 - The Vercel connector cannot reach his "flippersteam" team; deploys happen through the GitHub integration on push.
 - After finishing a backlog item: mark it in `docs/BACKLOG.md` and update **Status** above.
