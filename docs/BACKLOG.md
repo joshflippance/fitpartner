@@ -4,7 +4,7 @@
 **Date:** 2026-10-02
 **Status:** Order approved by Josh 2026-10-02.
 
-**Progress:** FP-01 to FP-10 done. FP-15 built 2026-10-19 with next-set suggestions, custom exercises, equipment locations and routines (expanded scope approved by Josh). FP-16 built 2026-10-25 as simple saved meals (name, calories, protein per serving) that either partner can edit; recipes with servings or ingredients were not chosen.
+**Progress:** FP-01 to FP-10 done. FP-15 built 2026-10-19 with next-set suggestions, custom exercises, equipment locations and routines (expanded scope approved by Josh). FP-16 built 2026-10-25 as simple saved meals (name, calories, protein per serving) that either partner can edit; recipes with servings or ingredients were not chosen. Launch path set 2026-10-25: keep it personal for now, so Beta and Public gated items stay parked.
 **Sources:** [Backlog inputs](research/backlog-inputs.md), [feature matrix](research/feature-matrix.md), [opportunity memo](research/opportunity-memo.md), current code ([README](../README.md)). Research is desk-based only; see the caveats in each file.
 
 ## How this is ordered

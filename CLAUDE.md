@@ -15,15 +15,15 @@ Couples fitness PWA for Josh and his partner April: shared real-time dashboard o
 - **Not yet done by Josh and April:** sign up and pair on the live app (0 profiles as of 2026-10-25)
 - **Done:** FP-01 to FP-10, FP-15 with lifting extras, FP-16 (see `docs/BACKLOG.md`)
 - **Lifting design (Josh's choices):** routines shared by the household, owner edits, partner uses or copies; shared named locations with equipment lists; rep-range progression (hit the top of the range on every set, then add 5 lb upper or 10 lb lower, 2.5 or 5 kg)
-- **Next in backlog order:** FP-11 to FP-14 are gated on the launch path decision; FP-17 (reminders via web push) is the next ungated item. Workout recommendations beyond next-set suggestions (program templates or AI sessions) were deferred until after real use
+- **Launch path (Josh, 2026-10-25):** keep it personal for now. Revisit a 10-couple beta after he and April have used it for real
+- **Next in backlog order:** FP-11 to FP-14 stay parked (beta items); FP-17 (reminders via web push) is the next ungated item. Workout recommendations beyond next-set suggestions (program templates or AI sessions) were deferred until after real use
 - **Saved meals (Josh's choices):** simple name, calories and protein per serving, logged with a portion multiplier; either partner edits or removes; removing archives the row
 - **Email confirmation:** off for the two-person launch; turn back on with custom SMTP before any beta (part of FP-11)
 
 ## Open decisions (Josh decides, do not choose for him)
 
-1. **Launch path:** keep personal, run a 10-couple beta, or build toward public launch. Options in `docs/research/opportunity-memo.md`.
-2. **Pinky Promise window:** currently 2 days (`late_log_days()` in the partner features migration). Options: 1, 2 or 3.
-3. **Nudge cooldown:** currently 60 minutes (`nudge_cooldown_minutes()`). Not yet confirmed by Josh.
+1. **Pinky Promise window:** currently 2 days (`late_log_days()` in the partner features migration). Options: 1, 2 or 3.
+2. **Nudge cooldown:** currently 60 minutes (`nudge_cooldown_minutes()`). Not yet confirmed by Josh.
 
 ## How Josh works (follow these)
 
