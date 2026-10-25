@@ -9,8 +9,12 @@ export function PortionSheet({
   busy,
   onAdd,
   onCancel,
+  subtitle = "How much did you have compared with your partner?",
+  actionLabel = "Add to mine",
 }: {
   meal: MealTemplate;
+  subtitle?: string;
+  actionLabel?: string;
   busy: boolean;
   onAdd: (factor: number) => void;
   onCancel: () => void;
@@ -26,7 +30,7 @@ export function PortionSheet({
       <div className="w-full max-w-md space-y-4 rounded-3xl border border-line bg-surface p-5">
         <div>
           <h2 id="portion-title" className="text-lg font-semibold">Add {meal.name}</h2>
-          <p className="text-sm text-muted">How much did you have compared with your partner?</p>
+          <p className="text-sm text-muted">{subtitle}</p>
         </div>
 
         <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Portion">
@@ -76,7 +80,7 @@ export function PortionSheet({
 
         <div className="grid grid-cols-2 gap-3">
           <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-          <Button type="button" disabled={busy || !valid} onClick={() => onAdd(effective)}>Add to mine</Button>
+          <Button type="button" disabled={busy || !valid} onClick={() => onAdd(effective)}>{actionLabel}</Button>
         </div>
       </div>
     </div>

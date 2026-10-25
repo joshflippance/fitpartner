@@ -82,6 +82,7 @@ scripts/generate-icons.mjs  regenerates PWA icons
 | `exercises` | starter library (`household_id` null) plus household custom exercises; muscle group and required equipment |
 | `locations` | shared named places (Home, Gym) with an equipment list |
 | `routines`, `routine_exercises` | household routines; owner edits, partner can use or `copy_routine()`; per exercise sets, rep range, rest |
+| `saved_meals` | household meal library: name, calories and protein per serving; either partner edits; removing archives |
 | `workout_sets` | per-set reps and weight (kg) for a workout in `workout_logs` |
 
 RLS: you write only your own rows. You read your partner's workouts always, and their meals and weight only when they share them (`can_see()`).
@@ -90,6 +91,7 @@ RLS: you write only your own rows. You read your partner's workouts always, and 
 
 - **Log once for both:** on the Log screen, "Add to mine" copies a partner's meal at your own portion.
 - **Quick add:** your 10 most recent distinct meals as one-tap chips, plus "copy yesterday".
+- **Saved meals:** a shared household library on the Log screen. Save with the star on an entry or the "Also save" box; tap a saved meal to log it at your own portion. Either partner can edit or remove (Manage).
 - **Nudges:** one tap on the partner's dashboard card; they see a banner in real time.
 - **Pinky Promise:** a workout dated more than 2 days before it's logged (`late_log_days()`) is pending until the partner taps "Count it". Pending and declined workouts don't count toward the streak. Status is set by a trigger, so it can't be forged from the client. Solo households skip the check.
 - **Privacy:** Settings toggles for sharing meals and weight. Enforced in the database, not just hidden in the UI.

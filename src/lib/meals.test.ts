@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { recentMeals, scaleMeal } from "./meals";
+import { recentMeals, scaleMeal, findSaved, sortSaved } from "./meals";
 import type { MealLog } from "./types";
 
 let n = 0;
@@ -46,5 +46,25 @@ describe("scaleMeal", () => {
   it("treats bad factors as a full portion", () => {
     expect(scaleMeal({ name: "X", calories: 100, protein_g: 10 }, 0).calories).toBe(100);
     expect(scaleMeal({ name: "X", calories: 100, protein_g: 10 }, NaN).calories).toBe(100);
+  });
+});
+
+describe("saved meals", () => {
+  const saved = [
+    { name: "oats", archived: false },
+    { name: "Chicken and rice", archived: false },
+    { name: "Burrito", archived: true },
+  ];
+
+  it("finds by name ignoring case and outer spaces", () => {
+    expect(findSaved(saved, "  CHICKEN and rice ")?.name).toBe("Chicken and rice");
+  });
+
+  it("ignores removed meals", () => {
+    expect(findSaved(saved, "burrito")).toBeUndefined();
+  });
+
+  it("sorts active meals alphabetically, case-insensitive", () => {
+    expect(sortSaved(saved).map((s) => s.name)).toEqual(["Chicken and rice", "oats"]);
   });
 });

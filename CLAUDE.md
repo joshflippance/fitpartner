@@ -11,11 +11,12 @@ Couples fitness PWA for Josh and his partner April: shared real-time dashboard o
 ## Status (last updated 2026-10-25)
 
 - **Live:** https://fitpartner-eight.vercel.app (Vercel, auto-deploys from `main`)
-- **Database:** Supabase project `fitpartner` (ref `fggbfvukmfjtoolnhfuc`), Canada Central. Migrations 1 to 6 applied (6 in two parts: tables via MCP, `save_routine_exercises` pasted by Josh)
+- **Database:** Supabase project `fitpartner` (ref `fggbfvukmfjtoolnhfuc`), Canada Central. Migrations 1 to 7 applied (6 in two parts: tables via MCP, `save_routine_exercises` pasted by Josh)
 - **Not yet done by Josh and April:** sign up and pair on the live app (0 profiles as of 2026-10-25)
-- **Done:** FP-01 to FP-10, FP-15 with lifting extras (see `docs/BACKLOG.md`)
+- **Done:** FP-01 to FP-10, FP-15 with lifting extras, FP-16 (see `docs/BACKLOG.md`)
 - **Lifting design (Josh's choices):** routines shared by the household, owner edits, partner uses or copies; shared named locations with equipment lists; rep-range progression (hit the top of the range on every set, then add 5 lb upper or 10 lb lower, 2.5 or 5 kg)
-- **Next in backlog order:** FP-11 to FP-14 are gated on the launch path decision; FP-16 (saved household meals) is the next ungated item. Workout recommendations beyond next-set suggestions (program templates or AI sessions) were deferred until after real use
+- **Next in backlog order:** FP-11 to FP-14 are gated on the launch path decision; FP-17 (reminders via web push) is the next ungated item. Workout recommendations beyond next-set suggestions (program templates or AI sessions) were deferred until after real use
+- **Saved meals (Josh's choices):** simple name, calories and protein per serving, logged with a portion multiplier; either partner edits or removes; removing archives the row
 - **Email confirmation:** off for the two-person launch; turn back on with custom SMTP before any beta (part of FP-11)
 
 ## Open decisions (Josh decides, do not choose for him)

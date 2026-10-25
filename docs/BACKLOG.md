@@ -4,7 +4,7 @@
 **Date:** 2026-10-02
 **Status:** Order approved by Josh 2026-10-02.
 
-**Progress:** FP-01 to FP-10 done. FP-15 built 2026-10-19 with next-set suggestions, custom exercises, equipment locations and routines (expanded scope approved by Josh).
+**Progress:** FP-01 to FP-10 done. FP-15 built 2026-10-19 with next-set suggestions, custom exercises, equipment locations and routines (expanded scope approved by Josh). FP-16 built 2026-10-25 as simple saved meals (name, calories, protein per serving) that either partner can edit; recipes with servings or ingredients were not chosen.
 **Sources:** [Backlog inputs](research/backlog-inputs.md), [feature matrix](research/feature-matrix.md), [opportunity memo](research/opportunity-memo.md), current code ([README](../README.md)). Research is desk-based only; see the caveats in each file.
 
 ## How this is ordered
@@ -41,7 +41,7 @@ Items tagged with a **gate** only start if Josh picks that path in the [go or no
 | 13 | FP-13 | Error monitoring | Foundation | S | Beta | FP-01 |
 | 14 | FP-14 | Onboarding target helper (calories and protein) | Guidance | S to M | Beta | |
 | 15 | FP-15 ✅ | Sets, reps and weight logging | Lifting | L | | |
-| 16 | FP-16 | Saved household meals and recipes | Couples | M | | FP-08 |
+| 16 | FP-16 ✅ | Saved household meals and recipes | Couples | M | | FP-08 |
 | 17 | FP-17 | Reminders via web push | Engagement | M | | FP-01 |
 | 18 | FP-18 | Offline logging | Foundation | M | | |
 | 19 | FP-19 | Shared reward when the streak goal is hit | Couples | S | | |

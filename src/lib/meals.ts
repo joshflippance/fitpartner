@@ -32,3 +32,16 @@ export function scaleMeal(meal: MealTemplate, factor: number): MealTemplate {
 }
 
 export const PORTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
+
+const nameKey = (name: string) => name.trim().toLowerCase();
+
+/** The active saved meal with this name, if any (names match ignoring case and spaces at the ends). */
+export function findSaved<T extends { name: string; archived?: boolean }>(saved: T[], name: string): T | undefined {
+  const k = nameKey(name);
+  return saved.find((s) => !s.archived && nameKey(s.name) === k);
+}
+
+/** Active saved meals, alphabetical. */
+export function sortSaved<T extends { name: string; archived?: boolean }>(saved: T[]): T[] {
+  return saved.filter((s) => !s.archived).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+}

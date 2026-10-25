@@ -3,12 +3,14 @@
 import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useHouseholdData } from "@/hooks/useHouseholdData";
+import { useSavedMeals } from "@/hooks/useSavedMeals";
 import { addDays, toLocalDate } from "@/lib/dates";
 import { dayLabel, loggableRange } from "@/lib/logging";
 import { formatWeight, fromKg, toKg } from "@/lib/units";
-import { recentMeals, scaleMeal, type MealTemplate } from "@/lib/meals";
-import type { MealLog, WeightLog, WorkoutLog } from "@/lib/types";
+import { findSaved, recentMeals, scaleMeal, type MealTemplate } from "@/lib/meals";
+import type { MealLog, SavedMeal, WeightLog, WorkoutLog } from "@/lib/types";
 import { PortionSheet } from "./PortionSheet";
+import { SavedMealsSheet } from "./SavedMealsSheet";
 import { Button, Card, Field, Input } from "./ui";
 
 type Tab = "meal" | "weight" | "workout";
@@ -24,7 +26,11 @@ type Editing =
   | { kind: "workout"; row: WorkoutLog }
   | null;
 
-type Result = PromiseLike<{ error: { message: string } | null }>;
+type Result = PromiseLike<{ error: { message: string; code?: string } | null }>;
+
+const DUPLICATE = "23505";
+const friendly = (e: { message: string; code?: string }) =>
+  e.code === DUPLICATE ? "A saved meal with that name already exists. Edit it in Saved meals." : e.message;
 
 export function Logger({ userId, householdId }: { userId: string; householdId: string }) {
   const supabase = useMemo(() => createClient(), []);
@@ -33,10 +39,11 @@ export function Logger({ userId, householdId }: { userId: string; householdId: s
 
   const [date, setDate] = useState(today);
   // 30 days of meals feeds the recent-meal chips and "copy yesterday".
-  const { profiles, meals, weights, workouts } = useHouseholdData(householdId, { mealFrom: addDays(date, -30), mealTo: date });
+  const { profiles, meals, weights, workouts, refresh } = useHouseholdData(householdId, { mealFrom: addDays(date, -30), mealTo: date });
   const me = profiles.find((p) => p.id === userId);
   const partner = profiles.find((p) => p.id !== userId);
   const unit = me?.weight_unit ?? "lb";
+  const { saved, refresh: refreshSaved } = useSavedMeals(householdId);
 
   const [tab, setTab] = useState<Tab>("meal");
   const [editing, setEditing] = useState<Editing>(null);
@@ -44,20 +51,31 @@ export function Logger({ userId, householdId }: { userId: string; householdId: s
   const [toast, setToast] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [copying, setCopying] = useState<MealLog | null>(null);
   const [confirmYesterday, setConfirmYesterday] = useState(false);
+  const [logging, setLogging] = useState<SavedMeal | null>(null);
+  const [managing, setManaging] = useState(false);
 
   const base = { user_id: userId, household_id: householdId, log_date: date };
 
-  async function run(action: () => Result, ok: string, form?: HTMLFormElement) {
+  async function run(action: () => Result, ok: string, form?: HTMLFormElement): Promise<boolean> {
     setBusy(true);
     const { error } = await action();
     setBusy(false);
-    setToast(error ? { kind: "err", text: error.message } : { kind: "ok", text: ok });
+    setToast(error ? { kind: "err", text: friendly(error) } : { kind: "ok", text: ok });
     if (!error) {
       form?.reset();
       setEditing(null);
+      // Realtime also refreshes, but don't depend on it for your own changes.
+      void refresh();
+      void refreshSaved();
     }
     setTimeout(() => setToast(null), 2500);
+    return !error;
   }
+
+  const insertSaved = (m: MealTemplate) =>
+    supabase.from("saved_meals").insert({ household_id: householdId, created_by: userId, name: m.name.trim(), calories: m.calories, protein_g: m.protein_g });
+
+  const saveMeal = (m: MealTemplate) => run(() => insertSaved(m), `Saved ${m.name} for both of you`);
 
   function changeDate(next: string) {
     if (next < range.min || next > range.max) return;
@@ -80,9 +98,14 @@ export function Logger({ userId, householdId }: { userId: string; householdId: s
       protein_g: Number(f.get("protein") || 0),
     };
     const row = editing?.kind === "meal" ? editing.row : null;
+    const alsoSave = !row && f.get("save") === "on" && !findSaved(saved, values.name);
     void run(
-      () => (row ? supabase.from("meal_logs").update(values).eq("id", row.id) : supabase.from("meal_logs").insert({ ...base, ...values })),
-      row ? "Meal updated" : "Meal logged",
+      async () => {
+        if (row) return supabase.from("meal_logs").update(values).eq("id", row.id);
+        const logged = await supabase.from("meal_logs").insert({ ...base, ...values });
+        return logged.error || !alsoSave ? logged : insertSaved(values);
+      },
+      row ? "Meal updated" : alsoSave ? "Meal logged and saved" : "Meal logged",
       e.currentTarget,
     );
   }
@@ -173,8 +196,33 @@ export function Logger({ userId, householdId }: { userId: string; householdId: s
           </div>
         )}
 
-        {tab === "meal" && !editing && (chips.length > 0 || yesterdayMeals.length > 0) && (
+        {tab === "meal" && !editing && (
           <div className="mb-5 space-y-3 border-b border-line pb-5">
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-sm text-muted">Saved meals</p>
+                <button onClick={() => setManaging(true)} className="text-sm text-you underline-offset-4 hover:underline">
+                  {saved.length ? "Manage" : "Add"}
+                </button>
+              </div>
+              {saved.length > 0 ? (
+                <div className="-mx-1 flex flex-wrap gap-2">
+                  {saved.map((m) => (
+                    <button
+                      key={m.id}
+                      onClick={() => setLogging(m)}
+                      disabled={busy}
+                      className="rounded-full border border-you/40 bg-surface-2 px-3 py-1.5 text-left text-sm active:scale-[0.97] disabled:opacity-50"
+                    >
+                      <span>{m.name}</span>
+                      <span className="ml-1.5 text-xs text-muted tabular-nums">{m.calories}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted">Meals you both eat often. Tap ☆ on an entry to save it.</p>
+              )}
+            </div>
             {chips.length > 0 && (
               <div>
                 <p className="mb-2 text-sm text-muted">Quick add</p>
@@ -225,6 +273,12 @@ export function Logger({ userId, householdId }: { userId: string; householdId: s
                 <Input name="protein" type="number" inputMode="decimal" step="0.1" min={0} max={999} defaultValue={editMeal?.protein_g} />
               </Field>
             </div>
+            {!editMeal && (
+              <label className="flex items-center gap-2 text-sm text-muted">
+                <input type="checkbox" name="save" className="size-4 accent-[var(--color-you)]" />
+                Also save for both of us
+              </label>
+            )}
             <Button type="submit" disabled={busy} className="w-full">{editMeal ? "Save changes" : "Add meal"}</Button>
           </form>
         )}
@@ -312,6 +366,32 @@ export function Logger({ userId, householdId }: { userId: string; householdId: s
         />
       )}
 
+      {logging && (
+        <PortionSheet
+          meal={logging}
+          busy={busy}
+          subtitle="Pick your portion. 1× is one serving."
+          actionLabel="Add"
+          onCancel={() => setLogging(null)}
+          onAdd={(factor) => {
+            const scaled = scaleMeal(logging, factor);
+            setLogging(null);
+            void addMeal(scaled, `Added ${scaled.name} (${scaled.calories} kcal)`);
+          }}
+        />
+      )}
+
+      {managing && (
+        <SavedMealsSheet
+          saved={saved}
+          busy={busy}
+          onClose={() => setManaging(false)}
+          onCreate={(v) => saveMeal(v)}
+          onUpdate={(id, v) => run(() => supabase.from("saved_meals").update(v).eq("id", id), `Updated ${v.name}`)}
+          onRemove={(id) => run(() => supabase.from("saved_meals").update({ archived: true }).eq("id", id), "Removed from saved meals")}
+        />
+      )}
+
       <Card>
         <h2 className="mb-3 font-medium">Your entries, {dayLabel(date, today).toLowerCase()}</h2>
         <ul className="divide-y divide-line text-sm">
@@ -347,6 +427,8 @@ export function Logger({ userId, householdId }: { userId: string; householdId: s
               detail={`${m.calories} kcal · ${m.protein_g}g`}
               onEdit={() => startEdit({ kind: "meal", row: m })}
               onDelete={() => remove("meal_logs", m.id)}
+              saved={Boolean(findSaved(saved, m.name))}
+              onSave={() => void saveMeal(m)}
             />
           ))}
           {!myWeight && myWorkouts.length === 0 && myMeals.length === 0 && <li className="py-2 text-muted">Nothing yet.</li>}
@@ -394,7 +476,21 @@ function DatePicker({
   );
 }
 
-function Row({ label, detail, onEdit, onDelete }: { label: string; detail: string; onEdit: () => void; onDelete: () => void }) {
+function Row({
+  label,
+  detail,
+  onEdit,
+  onDelete,
+  saved,
+  onSave,
+}: {
+  label: string;
+  detail: string;
+  onEdit: () => void;
+  onDelete: () => void;
+  saved?: boolean;
+  onSave?: () => void;
+}) {
   return (
     <li className="flex items-center justify-between gap-3 py-2.5">
       <button onClick={onEdit} className="truncate text-left hover:text-you" aria-label={`Edit ${label}`}>
@@ -402,6 +498,12 @@ function Row({ label, detail, onEdit, onDelete }: { label: string; detail: strin
       </button>
       <span className="flex shrink-0 items-center gap-3 text-muted">
         <span className="tabular-nums">{detail}</span>
+        {onSave &&
+          (saved ? (
+            <span className="text-you" aria-label={`${label} is saved`} title="Saved for both of you">★</span>
+          ) : (
+            <button onClick={onSave} aria-label={`Save ${label} for both of you`} className="hover:text-you">☆</button>
+          ))}
         <button onClick={onDelete} aria-label={`Delete ${label}`} className="hover:text-danger">✕</button>
       </span>
     </li>

@@ -128,3 +128,15 @@ export interface WorkoutSet {
   weight_kg: number;
   created_at: string;
 }
+
+export interface SavedMeal {
+  id: string;
+  household_id: string;
+  name: string;
+  calories: number;
+  protein_g: number;
+  created_by: string | null;
+  archived: boolean;
+  created_at: string;
+  updated_at: string;
+}
