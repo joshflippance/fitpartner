@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MUSCLE_GROUPS, equipmentLabel, isAvailable, muscleLabel, sortExercises } from "@/lib/lifting";
 import type { Exercise, Location, MuscleGroup } from "@/lib/types";
 import { Input } from "../ui";
+import { ExerciseGuideSheet, ExerciseThumb } from "./ExerciseGuideSheet";
 
 /** Search and filter list. Used inline by the library page and inside the picker sheet. */
 export function ExerciseList({
@@ -22,6 +23,7 @@ export function ExerciseList({
   const [query, setQuery] = useState("");
   const [muscle, setMuscle] = useState<MuscleGroup | "all">("all");
   const [showAll, setShowAll] = useState(false);
+  const [guide, setGuide] = useState<string | null>(null);
 
   const q = query.trim().toLowerCase();
   const filtered = sortExercises(exercises).filter(
@@ -57,15 +59,18 @@ export function ExerciseList({
       <ul className="mt-2 divide-y divide-line">
         {filtered.map((e) => (
           <li key={e.id} className="flex items-center justify-between gap-3 py-2.5">
-            <span className="min-w-0">
-              <span className="block truncate text-sm">
-                {e.name}
-                {e.household_id && <span className="ml-1.5 text-xs text-you">custom</span>}
+            <button onClick={() => setGuide(e.name)} className="flex min-w-0 items-center gap-3 text-left" aria-label={`How to do ${e.name}`}>
+              <ExerciseThumb name={e.name} />
+              <span className="min-w-0">
+                <span className="block truncate text-sm">
+                  {e.name}
+                  {e.household_id && <span className="ml-1.5 text-xs text-you">custom</span>}
+                </span>
+                <span className="text-xs text-muted">
+                  {muscleLabel(e.muscle_group)} · {e.equipment.length ? e.equipment.map(equipmentLabel).join(", ") : "Bodyweight"}
+                </span>
               </span>
-              <span className="text-xs text-muted">
-                {muscleLabel(e.muscle_group)} · {e.equipment.length ? e.equipment.map(equipmentLabel).join(", ") : "Bodyweight"}
-              </span>
-            </span>
+            </button>
             <span className="flex shrink-0 items-center gap-2">
               {renderExtra?.(e)}
               {onPick && (
@@ -78,6 +83,7 @@ export function ExerciseList({
         ))}
         {filtered.length === 0 && <li className="py-6 text-center text-sm text-muted">No matches.</li>}
       </ul>
+      {guide && <ExerciseGuideSheet name={guide} onClose={() => setGuide(null)} />}
     </div>
   );
 }

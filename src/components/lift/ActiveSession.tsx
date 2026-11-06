@@ -10,6 +10,7 @@ import { roundWeight, suggestNext, type Suggestion } from "@/lib/progression";
 import { fromKg, toKg } from "@/lib/units";
 import type { Exercise, Location, RoutineExercise, WeightUnit, WorkoutLog, WorkoutSet } from "@/lib/types";
 import { Button, Card } from "../ui";
+import { ExerciseGuideSheet } from "./ExerciseGuideSheet";
 import { ExercisePicker } from "./ExercisePicker";
 import { RestTimer } from "./RestTimer";
 
@@ -43,6 +44,7 @@ export function ActiveSession({ workoutId, userId }: { workoutId: string; userId
   const [editing, setEditing] = useState<string | null>(null); // set id being edited
   const [restUntil, setRestUntil] = useState<number | null>(null);
   const [picking, setPicking] = useState(false);
+  const [guide, setGuide] = useState<string | null>(null);
   const [confirmFinish, setConfirmFinish] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -207,7 +209,10 @@ export function ActiveSession({ workoutId, userId }: { workoutId: string; userId
           <Card key={exerciseId} className="p-4">
             <div className="mb-1 flex items-baseline justify-between gap-3">
               <h2 className="truncate font-medium">{ex.name}</h2>
-              <span className="shrink-0 text-xs text-muted">{muscleLabel(ex.muscle_group)}</span>
+              <span className="flex shrink-0 items-baseline gap-3 text-xs text-muted">
+                {muscleLabel(ex.muscle_group)}
+                <button onClick={() => setGuide(ex.name)} className="font-medium text-you" aria-label={`How to do ${ex.name}`}>How to</button>
+              </span>
             </div>
             <SuggestionLine s={suggestion} unit={unit} target={target} bodyweight={ex.equipment.length === 0} />
             {prev.length > 0 && (
@@ -345,6 +350,7 @@ export function ActiveSession({ workoutId, userId }: { workoutId: string; userId
 
       {restUntil && <RestTimer until={restUntil} onAdd={(s) => setRestUntil((t) => secondsFromNow(s, t))} onDone={() => setRestUntil(null)} />}
 
+      {guide && <ExerciseGuideSheet name={guide} onClose={() => setGuide(null)} />}
       {picking && (
         <ExercisePicker exercises={library} location={location} onPick={(e) => void addExercise(e)} onClose={() => setPicking(false)} />
       )}

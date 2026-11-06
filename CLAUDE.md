@@ -8,7 +8,7 @@ Read this first in every session. Update the **Status** section when you finish 
 
 Couples fitness PWA for Josh and his partner April: shared real-time dashboard of calories, protein, weight and workouts, with a weekly streak that counts only when both hit their targets. Built for the two of them first; public launch is undecided.
 
-## Status (last updated 2026-10-25)
+## Status (last updated 2026-11-06)
 
 - **Live:** https://fitpartner-eight.vercel.app (Vercel, auto-deploys from `main`)
 - **Database:** Supabase project `fitpartner` (ref `fggbfvukmfjtoolnhfuc`), Canada Central. Migrations 1 to 7 applied (6 in two parts: tables via MCP, `save_routine_exercises` pasted by Josh)
@@ -17,6 +17,7 @@ Couples fitness PWA for Josh and his partner April: shared real-time dashboard o
 - **Lifting design (Josh's choices):** routines shared by the household, owner edits, partner uses or copies; shared named locations with equipment lists; rep-range progression (hit the top of the range on every set, then add 5 lb upper or 10 lb lower, 2.5 or 5 kg)
 - **Launch path (Josh, 2026-10-25):** keep it personal for now. Revisit a 10-couple beta after he and April have used it for real
 - **Next in backlog order:** FP-11 to FP-14 stay parked (beta items); FP-17 (reminders via web push) is the next ungated item. Workout recommendations beyond next-set suggestions (program templates or AI sessions) were deferred until after real use
+- **Exercise how-to (Josh, 2026-11-06):** option A. Start and end photos plus steps for the 42 starter exercises from Free Exercise DB (public domain) in `public/exercises/`, and a YouTube search link for every exercise. Regenerate with `scripts/import-exercise-guides.py`. Upgrade path if wanted later: ExerciseDB Starter GIFs (USD 199, licence forbids putting files in this public repo, so they would go in Supabase Storage)
 - **Saved meals (Josh's choices):** simple name, calories and protein per serving, logged with a portion multiplier; either partner edits or removes; removing archives the row
 - **Email confirmation:** off for the two-person launch; turn back on with custom SMTP before any beta (part of FP-11)
 

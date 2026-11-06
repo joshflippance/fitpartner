@@ -103,6 +103,7 @@ RLS: you write only your own rows. You read your partner's workouts always, and 
 - **Session:** each exercise shows a target and the reason, last session's sets, and set rows prefilled with the target. Tap ✓ to log a set and start the rest timer. Tap a logged set to edit or delete it.
 - **Progression (`src/lib/progression.ts`):** rep ranges. Same weight and one more rep until every working set hits the top of the range, then add 5 lb upper or 10 lb lower body (2.5 or 5 kg) and drop to the bottom of the range.
 - **Exercises and locations:** exercises list the equipment they need; a location filters the library to what it has. Bodyweight is always available.
+- **How to:** tap an exercise in the library or picker, or "How to" in a session, for start and end photos, steps and a YouTube search. Photos and steps for the 42 starter exercises come from [Free Exercise DB](https://github.com/yuhonas/free-exercise-db) (public domain), imported by `scripts/import-exercise-guides.py`.
 - A finished lifting session is a normal `workout_logs` row, so it counts toward the weekly streak.
 
 ## Weekly streak

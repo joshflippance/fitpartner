@@ -206,7 +206,7 @@ Scope added by Josh: next-set suggestions (rep-range progression), custom exerci
 
 These come from the [skip list](research/backlog-inputs.md#skip) and are revisited only with new evidence:
 - Proprietary progression algorithm, or competing on AI depth or food database size.
-- Exercise video library, native watch apps, 95-nutrient clinical depth.
+- Hosted exercise video library (2026-11-06: Josh chose free public domain photos and steps for the starter exercises plus a YouTube search link instead; a licensed GIF set, ExerciseDB Starter at USD 199, is the upgrade path), native watch apps, 95-nutrient clinical depth.
 - Public feeds, global leaderboards, open community groups.
 - Lock In Mode, mandatory photo proof, money wagers.
 - Meal planner, grocery delivery, coach mode, lifetime upsells, AI generated art.
