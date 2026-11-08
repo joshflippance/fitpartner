@@ -4,11 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { loadLastSessions, loadLibrary, loadProfile, normalizeSet } from "@/lib/lift-data";
+import { loadBlocks, loadLastSessions, loadLibrary, loadProfile, normalizeSet } from "@/lib/lift-data";
+import { kindOf, type PlanTimedItem } from "@/lib/planner";
 import { muscleLabel } from "@/lib/lifting";
 import { roundWeight, suggestNext, type Suggestion } from "@/lib/progression";
 import { fromKg, toKg } from "@/lib/units";
-import type { Exercise, Location, RoutineExercise, WeightUnit, WorkoutLog, WorkoutSet } from "@/lib/types";
+import type { Exercise, Location, RoutineExercise, WeightUnit, WorkoutBlock, WorkoutLog, WorkoutSet } from "@/lib/types";
 import { Button, Card } from "../ui";
 import { ExerciseGuideSheet } from "./ExerciseGuideSheet";
 import { ExercisePicker } from "./ExercisePicker";
@@ -49,6 +50,8 @@ export function ActiveSession({ workoutId, userId }: { workoutId: string; userId
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [blocks, setBlocks] = useState<WorkoutBlock[]>([]);
+  const [timer, setTimer] = useState<{ until: number; name: string } | null>(null);
 
   const reloadSets = useCallback(async () => {
     const { data } = await supabase.from("workout_sets").select("*").eq("workout_id", workoutId).order("created_at");
@@ -61,7 +64,7 @@ export function ActiveSession({ workoutId, userId }: { workoutId: string; userId
       try {
         const { data: w, error: wErr } = await supabase.from("workout_logs").select("*").eq("id", workoutId).single();
         if (wErr || !w) throw new Error("Workout not found");
-        const [profile, lib, re, loc, s] = await Promise.all([
+        const [profile, lib, re, loc, s, b] = await Promise.all([
           loadProfile(supabase, userId),
           loadLibrary(supabase),
           w.routine_id
@@ -69,9 +72,18 @@ export function ActiveSession({ workoutId, userId }: { workoutId: string; userId
             : Promise.resolve({ data: [] as RoutineExercise[] }),
           w.location_id ? supabase.from("locations").select("*").eq("id", w.location_id).single() : Promise.resolve({ data: null }),
           supabase.from("workout_sets").select("*").eq("workout_id", workoutId).order("created_at"),
+          loadBlocks(supabase, workoutId),
         ]);
         if (cancelled) return;
-        const routineItems = (re.data ?? []) as RoutineExercise[];
+        // A planned session carries its own lifting targets; a routine session reads them from the routine.
+        const plan = (w as WorkoutLog).plan;
+        const routineItems = plan
+          ? plan.strength.map(
+              (p, i) =>
+                ({ id: `plan-${i}`, routine_id: "", exercise_id: p.exercise_id, position: i, target_sets: p.sets, rep_min: p.rep_min, rep_max: p.rep_max, rest_seconds: p.rest }) as RoutineExercise,
+            )
+          : ((re.data ?? []) as RoutineExercise[]);
+        setBlocks(b);
         const existing = ((s.data ?? []) as WorkoutSet[]).map(normalizeSet);
         const ids = [...new Set([...routineItems.map((i) => i.exercise_id), ...existing.map((x) => x.exercise_id)])];
         const history = await loadLastSessions(supabase, userId, ids, workoutId);
@@ -145,10 +157,30 @@ export function ActiveSession({ workoutId, userId }: { workoutId: string; userId
     await reloadSets();
   }
 
+  async function toggleBlock(item: PlanTimedItem, section: WorkoutBlock["section"]) {
+    if (!workout) return;
+    setError(null);
+    const done = blocks.find((b) => b.exercise_id === item.exercise_id && b.section === section);
+    const { error } = done
+      ? await supabase.from("workout_blocks").delete().eq("id", done.id)
+      : await supabase.from("workout_blocks").insert({
+          workout_id: workoutId,
+          user_id: userId,
+          household_id: workout.household_id,
+          exercise_id: item.exercise_id,
+          section,
+          seconds: item.seconds,
+        });
+    if (error) return setError(error.message);
+    setBlocks(await loadBlocks(supabase, workoutId));
+  }
+
+  const logged = sets.length + blocks.length;
+
   async function finish() {
     if (!workout) return;
     setBusy(true);
-    if (sets.length === 0) {
+    if (logged === 0) {
       await supabase.from("workout_logs").delete().eq("id", workout.id);
       router.push("/lift");
       return;
@@ -195,6 +227,32 @@ export function ActiveSession({ workoutId, userId }: { workoutId: string; userId
       </header>
 
       {error && <p className="rounded-2xl bg-danger/10 px-4 py-3 text-sm text-danger">{error}</p>}
+
+      {workout.plan?.note && <p className="rounded-2xl bg-surface px-4 py-3 text-sm text-muted">{workout.plan.note}</p>}
+      {workout.plan?.joint && (
+        <p className="px-1 text-xs text-muted">Joint session: same exercises, take turns. Your weights come from your own history.</p>
+      )}
+
+      {workout.plan && workout.plan.warmup.length > 0 && (
+        <TimedSection
+          title="Warm-up"
+          section="warmup"
+          hint="Easy pace, then moving stretches"
+          items={workout.plan.warmup}
+          blocks={blocks}
+          byId={byId}
+          finished={finished}
+          onToggle={(i, sec) => void toggleBlock(i, sec)}
+          onTimer={(i) => setTimer({ until: secondsFromNow(i.seconds), name: byId.get(i.exercise_id)?.name ?? "Timer" })}
+          onGuide={setGuide}
+        />
+      )}
+
+      {workout.plan?.circuit && (
+        <p className="rounded-2xl border border-you/40 px-4 py-3 text-sm">
+          Circuit: one set of each exercise in order, then rest {workout.plan.circuit.round_rest} s. {workout.plan.circuit.rounds} rounds.
+        </p>
+      )}
 
       {order.map((exerciseId) => {
         const ex = byId.get(exerciseId);
@@ -323,7 +381,36 @@ export function ActiveSession({ workoutId, userId }: { workoutId: string; userId
         );
       })}
 
-      {order.length === 0 && <p className="px-1 text-sm text-muted">Add your first exercise to get started.</p>}
+      {workout.plan && workout.plan.cardio.length > 0 && (
+        <TimedSection
+          title="Cardio"
+          section="cardio"
+          hint="After lifting"
+          items={workout.plan.cardio}
+          blocks={blocks}
+          byId={byId}
+          finished={finished}
+          onToggle={(i, sec) => void toggleBlock(i, sec)}
+          onTimer={(i) => setTimer({ until: secondsFromNow(i.seconds), name: byId.get(i.exercise_id)?.name ?? "Timer" })}
+          onGuide={setGuide}
+        />
+      )}
+      {workout.plan && workout.plan.stretch.length > 0 && (
+        <TimedSection
+          title="Stretch"
+          section="stretch"
+          hint="Hold each one, breathe slowly"
+          items={workout.plan.stretch}
+          blocks={blocks}
+          byId={byId}
+          finished={finished}
+          onToggle={(i, sec) => void toggleBlock(i, sec)}
+          onTimer={(i) => setTimer({ until: secondsFromNow(i.seconds), name: byId.get(i.exercise_id)?.name ?? "Timer" })}
+          onGuide={setGuide}
+        />
+      )}
+
+      {order.length === 0 && !workout.plan && <p className="px-1 text-sm text-muted">Add your first exercise to get started.</p>}
 
       {!finished && (
         <>
@@ -331,14 +418,14 @@ export function ActiveSession({ workoutId, userId }: { workoutId: string; userId
           {confirmFinish ? (
             <Card className="space-y-3">
               <p className="text-sm">
-                {sets.length === 0
-                  ? "No sets logged. This will discard the workout."
-                  : `Finish with ${sets.length} ${sets.length === 1 ? "set" : "sets"} logged? It counts toward today's streak.`}
+                {logged === 0
+                  ? "Nothing logged. This will discard the workout."
+                  : `Finish with ${sets.length} ${sets.length === 1 ? "set" : "sets"}${blocks.length ? ` and ${blocks.length} timed ${blocks.length === 1 ? "item" : "items"}` : ""} logged? It counts toward today's streak.`}
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <Button variant="ghost" onClick={() => setConfirmFinish(false)}>Keep going</Button>
-                <Button variant={sets.length === 0 ? "danger" : "primary"} disabled={busy} onClick={() => void finish()}>
-                  {sets.length === 0 ? "Discard" : "Finish"}
+                <Button variant={logged === 0 ? "danger" : "primary"} disabled={busy} onClick={() => void finish()}>
+                  {logged === 0 ? "Discard" : "Finish"}
                 </Button>
               </div>
             </Card>
@@ -348,11 +435,20 @@ export function ActiveSession({ workoutId, userId }: { workoutId: string; userId
         </>
       )}
 
-      {restUntil && <RestTimer until={restUntil} onAdd={(s) => setRestUntil((t) => secondsFromNow(s, t))} onDone={() => setRestUntil(null)} />}
+      {restUntil && !timer && <RestTimer until={restUntil} onAdd={(s) => setRestUntil((t) => secondsFromNow(s, t))} onDone={() => setRestUntil(null)} />}
+      {timer && (
+        <RestTimer
+          until={timer.until}
+          label={timer.name}
+          doneLabel={`${timer.name}: time. Tap ✓ to log it.`}
+          onAdd={(s) => setTimer((t) => (t ? { ...t, until: secondsFromNow(s, t.until) } : t))}
+          onDone={() => setTimer(null)}
+        />
+      )}
 
       {guide && <ExerciseGuideSheet name={guide} onClose={() => setGuide(null)} />}
       {picking && (
-        <ExercisePicker exercises={library} location={location} onPick={(e) => void addExercise(e)} onClose={() => setPicking(false)} />
+        <ExercisePicker exercises={library.filter((e) => kindOf(e) === "strength")} location={location} onPick={(e) => void addExercise(e)} onClose={() => setPicking(false)} />
       )}
     </div>
   );
@@ -393,4 +489,71 @@ function Elapsed({ since }: { since: string }) {
   }, []);
   const mins = Math.max(0, Math.floor((now - new Date(since).getTime()) / 60_000));
   return <span>{mins} min</span>;
+}
+
+function TimedSection({
+  title,
+  section,
+  hint,
+  items,
+  blocks,
+  byId,
+  finished,
+  onToggle,
+  onTimer,
+  onGuide,
+}: {
+  title: string;
+  section: WorkoutBlock["section"];
+  hint: string;
+  items: PlanTimedItem[];
+  blocks: WorkoutBlock[];
+  byId: Map<string, Exercise>;
+  finished: boolean;
+  onToggle: (item: PlanTimedItem, section: WorkoutBlock["section"]) => void;
+  onTimer: (item: PlanTimedItem) => void;
+  onGuide: (name: string) => void;
+}) {
+  const isDone = (i: PlanTimedItem) => blocks.some((b) => b.exercise_id === i.exercise_id && b.section === section);
+  const doneCount = items.filter(isDone).length;
+  const label = (s: number) => (s >= 90 ? `${Math.round(s / 60)} min` : `${s} s`);
+  return (
+    <Card className="p-4">
+      <div className="mb-1 flex items-baseline justify-between gap-3">
+        <h2 className="font-medium">{title}</h2>
+        <span className="text-xs text-muted">
+          {doneCount} of {items.length} · {hint}
+        </span>
+      </div>
+      <ul className="divide-y divide-line">
+        {items.map((i) => {
+          const ex = byId.get(i.exercise_id);
+          const done = isDone(i);
+          return (
+            <li key={i.exercise_id} className="flex items-center justify-between gap-3 py-2">
+              <button onClick={() => ex && onGuide(ex.name)} className={`min-w-0 truncate text-left text-sm ${done ? "text-muted line-through" : ""}`}>
+                {ex?.name ?? "Exercise"}
+              </button>
+              <span className="flex shrink-0 items-center gap-2">
+                <span className="text-xs text-muted tabular-nums">{label(i.seconds)}</span>
+                {!finished && !done && (
+                  <button onClick={() => onTimer(i)} className="rounded-full border border-line px-2.5 py-1 text-xs" aria-label={`Start timer for ${ex?.name}`}>
+                    ▶
+                  </button>
+                )}
+                <button
+                  onClick={() => !finished && onToggle(i, section)}
+                  disabled={finished}
+                  aria-label={done ? `Undo ${ex?.name}` : `Mark ${ex?.name} done`}
+                  className={`flex size-8 items-center justify-center rounded-full text-sm ${done ? "bg-you text-black" : "border border-line text-muted"}`}
+                >
+                  ✓
+                </button>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
+  );
 }

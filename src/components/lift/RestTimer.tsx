@@ -3,7 +3,19 @@
 import { useEffect, useState } from "react";
 
 /** Countdown banner above the bottom nav. Vibrates once when rest is over. */
-export function RestTimer({ until, onAdd, onDone }: { until: number; onAdd: (seconds: number) => void; onDone: () => void }) {
+export function RestTimer({
+  until,
+  onAdd,
+  onDone,
+  label = "Rest",
+  doneLabel = "Rest done. Next set.",
+}: {
+  until: number;
+  onAdd: (seconds: number) => void;
+  onDone: () => void;
+  label?: string;
+  doneLabel?: string;
+}) {
   const [now, setNow] = useState(() => Date.now());
   const remaining = Math.max(0, Math.ceil((until - now) / 1000));
 
@@ -35,7 +47,7 @@ export function RestTimer({ until, onAdd, onDone }: { until: number; onAdd: (sec
           remaining === 0 ? "border-you bg-you text-black" : "border-line bg-surface-2"
         }`}
       >
-        <span className="text-sm">{remaining === 0 ? "Rest done. Next set." : "Rest"}</span>
+        <span className="text-sm">{remaining === 0 ? doneLabel : label}</span>
         <span className="text-2xl font-semibold tabular-nums">
           {mm}:{ss}
         </span>

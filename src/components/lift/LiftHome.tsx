@@ -4,9 +4,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { loadLocations, loadOpenWorkout, loadRoutines, startWorkout } from "@/lib/lift-data";
-import type { Location, Profile, Routine, RoutineExercise, WorkoutLog } from "@/lib/types";
+import {
+  DEFAULT_PROGRAM,
+  loadLibrary,
+  loadLocations,
+  loadOpenWorkout,
+  loadPartnerJoint,
+  loadPlanningContext,
+  loadPrograms,
+  loadProfile,
+  loadRoutines,
+  startWorkout,
+} from "@/lib/lift-data";
+import { DAY_LABEL, type DayType, type Plan } from "@/lib/planner";
+import type { Exercise, Location, Profile, Routine, RoutineExercise, TrainingProgram, WorkoutLog } from "@/lib/types";
 import { Button, Card } from "../ui";
+import { PlanCard } from "./PlanCard";
 
 const LOCATION_KEY = "fitpartner:location";
 
@@ -21,17 +34,32 @@ export function LiftHome({ userId, householdId, partner }: { userId: string; hou
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [library, setLibrary] = useState<Exercise[]>([]);
+  const [programs, setPrograms] = useState<Map<string, TrainingProgram>>(new Map());
+  const [planning, setPlanning] = useState<Awaited<ReturnType<typeof loadPlanningContext>> | null>(null);
+  const [myTarget, setMyTarget] = useState(3);
+  const [partnerJoint, setPartnerJoint] = useState<WorkoutLog | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [locs, r, o] = await Promise.all([
+        const [locs, r, o, lib, progs, ctx, me, pj] = await Promise.all([
           loadLocations(supabase, householdId),
           loadRoutines(supabase, householdId),
           loadOpenWorkout(supabase, userId),
+          loadLibrary(supabase),
+          loadPrograms(supabase, householdId),
+          loadPlanningContext(supabase, userId, householdId),
+          loadProfile(supabase, userId),
+          partner ? loadPartnerJoint(supabase, partner.id) : Promise.resolve(null),
         ]);
         if (cancelled) return;
+        setLibrary(lib);
+        setPrograms(progs);
+        setPlanning(ctx);
+        setMyTarget(me?.weekly_workout_target ?? 3);
+        setPartnerJoint(pj);
         setLocations(locs);
         setRoutines(r.routines);
         setItems(r.items);
@@ -50,7 +78,7 @@ export function LiftHome({ userId, householdId, partner }: { userId: string; hou
     return () => {
       cancelled = true;
     };
-  }, [supabase, householdId, userId]);
+  }, [supabase, householdId, userId, partner]);
 
   function pickLocation(id: string | null) {
     setLocationId(id);
@@ -60,14 +88,15 @@ export function LiftHome({ userId, householdId, partner }: { userId: string; hou
     } catch {}
   }
 
-  async function start(routine: Routine | null) {
+  async function start(routine: Routine | null, plan?: { plan: Plan; name: string; locationId?: string | null }) {
     setBusy(true);
     setError(null);
     try {
       const w = await startWorkout(supabase, userId, householdId, {
-        name: routine?.name ?? "Workout",
+        name: plan?.name ?? routine?.name ?? "Workout",
         routineId: routine?.id ?? null,
-        locationId,
+        locationId: plan?.locationId !== undefined ? plan.locationId : locationId,
+        plan: plan?.plan ?? null,
       });
       router.push(`/lift/session/${w.id}`);
     } catch (e) {
@@ -96,6 +125,20 @@ export function LiftHome({ userId, householdId, partner }: { userId: string; hou
         </Card>
       )}
 
+      {partner && partnerJoint && !open && partnerJoint.plan && (
+        <Card className="border-partner/40">
+          <p className="text-sm text-muted">{partner.display_name} started a joint session</p>
+          <p className="mt-1 font-medium">{DAY_LABEL[partnerJoint.plan.day as DayType]} · {partnerJoint.plan.minutes} min</p>
+          <Button
+            className="mt-4 w-full"
+            disabled={busy}
+            onClick={() => void start(null, { plan: partnerJoint.plan!, name: partnerJoint.name, locationId: partnerJoint.location_id ?? null })}
+          >
+            Join {partner.display_name}
+          </Button>
+        </Card>
+      )}
+
       <Card>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-medium">Where are you training?</h2>
@@ -118,10 +161,33 @@ export function LiftHome({ userId, householdId, partner }: { userId: string; hou
             </Link>
           )}
         </div>
-        <Button variant="ghost" className="mt-4 w-full" disabled={busy || Boolean(open)} onClick={() => void start(null)}>
-          Start an empty workout
-        </Button>
       </Card>
+
+      {loading || !planning ? (
+        <div className="h-64 animate-pulse rounded-3xl bg-surface" />
+      ) : (
+        <PlanCard
+          library={library}
+          location={locations.find((l) => l.id === locationId) ?? null}
+          program={programs.get(userId) ?? DEFAULT_PROGRAM}
+          partner={partner}
+          partnerProgram={partner ? (programs.get(partner.id) ?? DEFAULT_PROGRAM) : null}
+          context={{
+            today: planning.today,
+            recentDays: planning.logs.map((l) => l.plan?.day).filter((d): d is DayType => Boolean(d)),
+            lastTrained: planning.lastTrained,
+            week: planning.week,
+            myTarget,
+          }}
+          userId={userId}
+          disabled={busy || Boolean(open)}
+          onStart={(plan, name) => void start(null, { plan, name })}
+        />
+      )}
+
+      <Button variant="ghost" className="w-full" disabled={busy || Boolean(open)} onClick={() => void start(null)}>
+        Start an empty workout
+      </Button>
 
       <Card>
         <div className="mb-3 flex items-center justify-between">

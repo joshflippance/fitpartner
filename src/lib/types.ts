@@ -52,6 +52,7 @@ export interface WorkoutLog {
   location_id?: string | null;
   started_at?: string | null;
   finished_at?: string | null;
+  plan?: import("./planner").Plan | null;
   status: WorkoutStatus;
   reviewed_by: string | null;
   reviewed_at: string | null;
@@ -94,6 +95,37 @@ export interface Exercise {
   equipment: string[];
   created_by: string | null;
   archived: boolean;
+  /** strength: sets and reps. cardio, warmup, stretch: timed. Older rows without it are strength. */
+  kind?: ExerciseKind;
+}
+
+export type ExerciseKind = "strength" | "cardio" | "warmup" | "stretch";
+
+/** A timed item done in a session: warm-up, cardio or stretch. */
+export interface WorkoutBlock {
+  id: string;
+  workout_id: string;
+  user_id: string;
+  household_id: string;
+  exercise_id: string;
+  section: "warmup" | "cardio" | "stretch";
+  seconds: number;
+  created_at: string;
+}
+
+export type Split = "full_body" | "upper_lower" | "ppl" | "ppl_ul" | "circuit";
+
+export interface TrainingProgram {
+  user_id: string;
+  household_id: string;
+  split: Split;
+  days_per_week: number;
+  minutes: 30 | 45 | 60 | 75;
+  cardio_minutes: 0 | 10 | 15 | 20;
+  warmup: boolean;
+  stretch: boolean;
+  ai_enabled: boolean;
+  updated_at: string;
 }
 
 export interface Routine {

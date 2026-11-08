@@ -14,6 +14,7 @@ You do the account steps (they need your sign-ins and keys). Everything else is 
    5. `supabase/migrations/20261013010000_harden_functions.sql`
    6. `supabase/migrations/20261019000000_lifting.sql`
    7. `supabase/migrations/20261025000000_saved_meals.sql`
+   8. `supabase/migrations/20261108000000_planner.sql`
 
    Or with the CLI: `supabase link --project-ref <ref>` then `supabase db push`.
 4. **Copy two values** from Project Settings > API: the project URL and the publishable key. Never use the secret key in this app.
@@ -25,6 +26,7 @@ You do the account steps (they need your sign-ins and keys). Everything else is 
 3. Add environment variables (Production and Preview):
    - `NEXT_PUBLIC_SUPABASE_URL` = project URL
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = publishable key
+   - `ANTHROPIC_API_KEY` = optional, for AI plan adjustments (never prefix it with `NEXT_PUBLIC_`)
 4. Deploy. Note the production URL (for example `fitpartner.vercel.app`).
 
 ## 3. Supabase auth settings
@@ -60,7 +62,8 @@ Supabase's built-in email sender is rate limited and meant for testing. Set up c
 |---|---|
 | App | https://fitpartner-eight.vercel.app |
 | Supabase project | `fitpartner` (ref `fggbfvukmfjtoolnhfuc`), Canada Central |
-| Migrations applied | 1 to 7 (lifting and saved meals applied 2026-10-25) |
+| Migrations applied | 1 to 8 (planner applied 2026-11-08) |
+| AI | `ANTHROPIC_API_KEY` in Vercel env (Production and Preview), server only. Model `claude-sonnet-5-5`. Set a monthly spend limit in the Anthropic Console. |
 | Security advisor | one expected warning: signed-in users can call the app RPCs (each checks the caller) |
 | Email confirmation | **Off** (Josh's choice, 2026-10-13, two known users). Turn back on with custom SMTP before any beta. |
 

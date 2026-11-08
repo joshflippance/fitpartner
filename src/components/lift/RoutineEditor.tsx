@@ -9,6 +9,7 @@ import { muscleLabel } from "@/lib/lifting";
 import type { Exercise, Location, Routine, RoutineExercise } from "@/lib/types";
 import { Button, Card, Field, Input } from "../ui";
 import { ExercisePicker } from "./ExercisePicker";
+import { kindOf } from "@/lib/planner";
 
 type Row = Pick<RoutineExercise, "exercise_id" | "target_sets" | "rep_min" | "rep_max" | "rest_seconds"> & { key: string };
 
@@ -268,7 +269,7 @@ export function RoutineEditor({
 
       {picking && (
         <ExercisePicker
-          exercises={library}
+          exercises={library.filter((e) => kindOf(e) === "strength")}
           location={null}
           onClose={() => setPicking(false)}
           onPick={(e) => {

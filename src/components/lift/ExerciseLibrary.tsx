@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { EQUIPMENT, MUSCLE_GROUPS } from "@/lib/lifting";
+import { EQUIPMENT, KIND_LABEL, MUSCLE_GROUPS } from "@/lib/lifting";
 import { loadLibrary, loadLocations } from "@/lib/lift-data";
-import type { Exercise, Location, MuscleGroup } from "@/lib/types";
+import type { Exercise, ExerciseKind, Location, MuscleGroup } from "@/lib/types";
 import { Button, Card, Field, Input } from "../ui";
 import { Chip } from "./LiftHome";
 import { ExerciseList } from "./ExercisePicker";
@@ -111,6 +111,7 @@ function ExerciseForm({
   const [name, setName] = useState(initial?.name ?? "");
   const [muscle, setMuscle] = useState<MuscleGroup>(initial?.muscle_group ?? "chest");
   const [equipment, setEquipment] = useState<string[]>(initial?.equipment ?? []);
+  const [kind, setKind] = useState<ExerciseKind>(initial?.kind ?? "strength");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -119,7 +120,7 @@ function ExerciseForm({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
-    const values = { name: name.trim(), muscle_group: muscle, equipment };
+    const values = { name: name.trim(), muscle_group: muscle, equipment, kind };
     const { error } = initial
       ? await supabase.from("exercises").update(values).eq("id", initial.id)
       : await supabase.from("exercises").insert({ ...values, household_id: householdId, created_by: userId });
@@ -134,6 +135,17 @@ function ExerciseForm({
         <h2 className="font-medium">{initial ? "Edit exercise" : "New custom exercise"}</h2>
         <Field label="Name">
           <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={60} required placeholder="Landmine press" />
+        </Field>
+        <Field label="Type">
+          <select
+            value={kind}
+            onChange={(e) => setKind(e.target.value as ExerciseKind)}
+            className="h-12 w-full rounded-2xl border border-line bg-surface px-4 text-base text-text"
+          >
+            {(Object.keys(KIND_LABEL) as ExerciseKind[]).map((k) => (
+              <option key={k} value={k}>{k === "strength" ? "Strength (sets and reps)" : `${KIND_LABEL[k]} (timed)`}</option>
+            ))}
+          </select>
         </Field>
         <Field label="Main muscle">
           <select

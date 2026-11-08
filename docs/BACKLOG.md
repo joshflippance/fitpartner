@@ -55,7 +55,7 @@ Items tagged with a **gate** only start if Josh picks that path in the [go or no
 | 27 | FP-27 | Optional photo on workout check-ins | Engagement | M | | |
 | 28 | FP-28 | Side by side lifting compare | Couples | M | | FP-15 |
 | 29 | FP-29 | Export week to ChatGPT or Claude | Guidance | S | | |
-| 30 | FP-30 | Plan one session, auto-scaled for the partner | Couples | L | | FP-15 |
+| 30 | FP-30 ✅ | Plan one session, auto-scaled for the partner | Couples | L | | FP-15 |
 
 ## Item details
 
@@ -198,14 +198,14 @@ Scope added by Josh: next-set suggestions (rep-range progression), custom exerci
 - **Why:** Hevy delivers AI value without building a coach ([hevy](research/apps/hevy.md)).
 - **Done when:** one tap copies a structured summary of the week, ready to paste into either assistant.
 
-**FP-30 Plan one session, auto-scaled for the partner** (L)
+**FP-30 Plan one session, auto-scaled for the partner** (L). Done 2026-11-08 as part of the workout planner: "Train with" builds a joint plan (rules, or AI when both opt in); the partner joins from their Lift tab and weights come from each person's history.
 - **Why:** Fitbod's share link adjusts a workout to the recipient's strength ([fitbod](research/apps/fitbod.md)). It fits couples who train together at different strengths.
 - **Done when:** a planned workout shared with the partner suggests weights from their own history.
 
 ## Not doing
 
 These come from the [skip list](research/backlog-inputs.md#skip) and are revisited only with new evidence:
-- Proprietary progression algorithm, or competing on AI depth or food database size.
+- Proprietary progression algorithm, or competing on AI depth or food database size. (2026-11-08: Josh chose a rules planner plus an opt-in AI layer aimed at couples features, not a generic AI coach.)
 - Hosted exercise video library (2026-11-06: Josh chose free public domain photos and steps for the starter exercises plus a YouTube search link instead; a licensed GIF set, ExerciseDB Starter at USD 199, is the upgrade path), native watch apps, 95-nutrient clinical depth.
 - Public feeds, global leaderboards, open community groups.
 - Lock In Mode, mandatory photo proof, money wagers.

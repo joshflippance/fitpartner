@@ -83,6 +83,8 @@ scripts/generate-icons.mjs  regenerates PWA icons
 | `locations` | shared named places (Home, Gym) with an equipment list |
 | `routines`, `routine_exercises` | household routines; owner edits, partner can use or `copy_routine()`; per exercise sets, rep range, rest |
 | `saved_meals` | household meal library: name, calories and protein per serving; either partner edits; removing archives |
+| `training_programs` | one per person: split, days per week, usual length, warm-up, stretch, cardio finisher, AI opt-in; partner can read |
+| `workout_blocks` | timed items done in a session (warm-up, cardio, stretch) |
 | `workout_sets` | per-set reps and weight (kg) for a workout in `workout_logs` |
 
 RLS: you write only your own rows. You read your partner's workouts always, and their meals and weight only when they share them (`can_see()`).
@@ -104,6 +106,9 @@ RLS: you write only your own rows. You read your partner's workouts always, and 
 - **Progression (`src/lib/progression.ts`):** rep ranges. Same weight and one more rep until every working set hits the top of the range, then add 5 lb upper or 10 lb lower body (2.5 or 5 kg) and drop to the bottom of the range.
 - **Exercises and locations:** exercises list the equipment they need; a location filters the library to what it has. Bodyweight is always available.
 - **How to:** tap an exercise in the library or picker, or "How to" in a session, for start and end photos, steps and a YouTube search. Photos and steps for the 42 starter exercises come from [Free Exercise DB](https://github.com/yuhonas/free-exercise-db) (public domain), imported by `scripts/import-exercise-guides.py`.
+- **Planner (`src/lib/planner.ts`):** set a program at Lift > Program (split, days, usual length, warm-up, stretching, cardio finisher). The Lift tab shows "Next up" from your rotation; change the type (any split day, Cardio or Mobility) or length (30 to 75 min) for one session without touching the program. Warm-up goes first, held stretches last, cardio after lifting. A streak check appears when either of you is about to miss the weekly target.
+- **Training together:** "Train with" plans one joint session (the shorter of your usual lengths); the partner sees "Join" on their Lift tab. Same exercises, taking turns; weights come from each person's own history.
+- **AI (optional, `src/app/api/plan/route.ts`):** "Adjust with AI" changes a plan in plain English with Claude Sonnet 5.5. Off until each person turns it on in Program; joint AI plans need both. Sent: the plan, exercises available at the location, program and how many days ago each exercise was done. Not sent: names, emails, body weight, meals or lifted weights. Answers are validated against your library and equipment before they can be used. Needs `ANTHROPIC_API_KEY` on the server.
 - A finished lifting session is a normal `workout_logs` row, so it counts toward the weekly streak.
 
 ## Weekly streak
@@ -118,4 +123,4 @@ Each person sets a weekly workout target in Settings (default 3). A week counts 
 
 - Service worker / offline logging
 - Food database or barcode lookup
-- Program templates and AI-generated sessions (deferred)
+- Photos for the new cardio, warm-up and stretch exercises (they have the YouTube how-to link)

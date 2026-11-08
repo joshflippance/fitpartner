@@ -1,4 +1,4 @@
-import type { Exercise, Location, MuscleGroup } from "./types";
+import type { Exercise, ExerciseKind, Location, MuscleGroup } from "./types";
 
 export const EQUIPMENT = [
   { id: "barbell", label: "Barbell" },
@@ -10,7 +10,19 @@ export const EQUIPMENT = [
   { id: "machine", label: "Weight machines" },
   { id: "pull_up_bar", label: "Pull-up bar" },
   { id: "bands", label: "Resistance bands" },
+  { id: "treadmill", label: "Treadmill" },
+  { id: "bike", label: "Stationary bike" },
+  { id: "rower", label: "Rowing machine" },
+  { id: "elliptical", label: "Elliptical" },
+  { id: "jump_rope", label: "Jump rope" },
 ] as const;
+
+export const KIND_LABEL: Record<ExerciseKind, string> = {
+  strength: "Strength",
+  cardio: "Cardio",
+  warmup: "Warm-up",
+  stretch: "Stretch",
+};
 
 export const MUSCLE_GROUPS: { id: MuscleGroup; label: string }[] = [
   { id: "chest", label: "Chest" },

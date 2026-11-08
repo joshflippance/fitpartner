@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { MUSCLE_GROUPS, equipmentLabel, isAvailable, muscleLabel, sortExercises } from "@/lib/lifting";
-import type { Exercise, Location, MuscleGroup } from "@/lib/types";
+import { KIND_LABEL, MUSCLE_GROUPS, equipmentLabel, isAvailable, muscleLabel, sortExercises } from "@/lib/lifting";
+import { kindOf } from "@/lib/planner";
+import type { Exercise, ExerciseKind, Location, MuscleGroup } from "@/lib/types";
 import { Input } from "../ui";
 import { ExerciseGuideSheet, ExerciseThumb } from "./ExerciseGuideSheet";
 
@@ -21,14 +22,16 @@ export function ExerciseList({
   renderExtra?: (e: Exercise) => React.ReactNode;
 }) {
   const [query, setQuery] = useState("");
-  const [muscle, setMuscle] = useState<MuscleGroup | "all">("all");
+  const [muscle, setMuscle] = useState<MuscleGroup | "all" | ExerciseKind>("all");
+  const kinds: ExerciseKind[] = [...new Set(exercises.map(kindOf))].filter((k) => k !== "strength");
   const [showAll, setShowAll] = useState(false);
   const [guide, setGuide] = useState<string | null>(null);
 
   const q = query.trim().toLowerCase();
   const filtered = sortExercises(exercises).filter(
     (e) =>
-      (muscle === "all" || e.muscle_group === muscle) &&
+      (muscle === "all" ||
+        (kinds.includes(muscle as ExerciseKind) ? kindOf(e) === muscle : kindOf(e) === "strength" && e.muscle_group === muscle)) &&
       (!q || e.name.toLowerCase().includes(q)) &&
       (showAll || isAvailable(e, location)),
   );
@@ -38,7 +41,7 @@ export function ExerciseList({
     <div>
       <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search exercises" aria-label="Search exercises" />
       <div className="-mx-1 mt-3 flex gap-1.5 overflow-x-auto pb-1">
-        {[{ id: "all" as const, label: "All" }, ...MUSCLE_GROUPS].map((m) => (
+        {[{ id: "all" as const, label: "All" }, ...MUSCLE_GROUPS, ...kinds.map((k) => ({ id: k, label: KIND_LABEL[k] }))].map((m) => (
           <button
             key={m.id}
             onClick={() => setMuscle(m.id)}
@@ -67,6 +70,7 @@ export function ExerciseList({
                   {e.household_id && <span className="ml-1.5 text-xs text-you">custom</span>}
                 </span>
                 <span className="text-xs text-muted">
+                  {kindOf(e) !== "strength" && `${KIND_LABEL[kindOf(e)]} · `}
                   {muscleLabel(e.muscle_group)} · {e.equipment.length ? e.equipment.map(equipmentLabel).join(", ") : "Bodyweight"}
                 </span>
               </span>

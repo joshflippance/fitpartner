@@ -1,8 +1,10 @@
 "use client";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Exercise, Location, Profile, Routine, RoutineExercise, WorkoutLog, WorkoutSet } from "./types";
-import { toLocalDate } from "./dates";
+import type { Exercise, Location, Profile, Routine, RoutineExercise, TrainingProgram, WorkoutBlock, WorkoutLog, WorkoutSet } from "./types";
+import { addDays, toLocalDate } from "./dates";
+import { weekStart } from "./streak";
+import type { Plan } from "./planner";
 
 const num = <T extends { weight_kg: number | string }>(r: T) => ({ ...r, weight_kg: Number(r.weight_kg) });
 
@@ -75,7 +77,7 @@ export async function startWorkout(
   sb: SupabaseClient,
   userId: string,
   householdId: string,
-  opts: { name: string; routineId: string | null; locationId: string | null },
+  opts: { name: string; routineId: string | null; locationId: string | null; plan?: Plan | null },
 ) {
   const { data, error } = await sb
     .from("workout_logs")
@@ -86,6 +88,7 @@ export async function startWorkout(
       name: opts.name,
       routine_id: opts.routineId,
       location_id: opts.locationId,
+      plan: opts.plan ?? null,
       started_at: new Date().toISOString(),
     })
     .select()
@@ -95,3 +98,63 @@ export async function startWorkout(
 }
 
 export const normalizeSet = num;
+
+export const DEFAULT_PROGRAM: Omit<TrainingProgram, "user_id" | "household_id" | "updated_at"> = {
+  split: "full_body",
+  days_per_week: 3,
+  minutes: 45,
+  cardio_minutes: 0,
+  warmup: true,
+  stretch: true,
+  ai_enabled: false,
+};
+
+/** Both partners' programs, keyed by user id. Missing means the defaults. */
+export async function loadPrograms(sb: SupabaseClient, householdId: string) {
+  const { data } = await sb.from("training_programs").select("*").eq("household_id", householdId);
+  return new Map(((data ?? []) as TrainingProgram[]).map((p) => [p.user_id, p]));
+}
+
+export async function saveProgram(sb: SupabaseClient, userId: string, householdId: string, values: Partial<TrainingProgram>) {
+  const { error } = await sb.from("training_programs").upsert({ ...values, user_id: userId, household_id: householdId }, { onConflict: "user_id" });
+  if (error) throw error;
+}
+
+/** What the planner needs: my recent planned days, when I last did each exercise, and this week's workouts for both of us. */
+export async function loadPlanningContext(sb: SupabaseClient, userId: string, householdId: string) {
+  const today = toLocalDate();
+  const since = addDays(today, -60);
+  const [logs, sets, week] = await Promise.all([
+    sb.from("workout_logs").select("log_date, plan, status, finished_at").eq("user_id", userId).gte("log_date", since).order("log_date", { ascending: false }),
+    sb.from("workout_sets").select("exercise_id, created_at").eq("user_id", userId).gte("created_at", `${since}T00:00:00Z`).order("created_at", { ascending: false }).limit(1000),
+    sb.from("workout_logs").select("user_id, log_date, status").eq("household_id", householdId).gte("log_date", weekStart(today)).lte("log_date", today),
+  ]);
+  const lastTrained = new Map<string, string>();
+  for (const s of sets.data ?? []) if (!lastTrained.has(s.exercise_id)) lastTrained.set(s.exercise_id, s.created_at);
+  return {
+    today,
+    logs: (logs.data ?? []) as { log_date: string; plan: Plan | null; status: string; finished_at: string | null }[],
+    lastTrained,
+    week: (week.data ?? []) as { user_id: string; log_date: string; status: string }[],
+  };
+}
+
+/** The partner's joint session in progress today, if any, so the other partner can join it. */
+export async function loadPartnerJoint(sb: SupabaseClient, partnerId: string) {
+  const { data } = await sb
+    .from("workout_logs")
+    .select("*")
+    .eq("user_id", partnerId)
+    .eq("log_date", toLocalDate())
+    .is("finished_at", null)
+    .not("started_at", "is", null)
+    .order("started_at", { ascending: false })
+    .limit(1);
+  const w = (data?.[0] ?? null) as WorkoutLog | null;
+  return w?.plan?.joint ? w : null;
+}
+
+export async function loadBlocks(sb: SupabaseClient, workoutId: string) {
+  const { data } = await sb.from("workout_blocks").select("*").eq("workout_id", workoutId);
+  return (data ?? []) as WorkoutBlock[];
+}
